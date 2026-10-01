@@ -1,6 +1,4 @@
-# Campus-Lost-Found-hub---Project-
-
-# Campus Lost & Found
+# Campus-Lost-Found-Hub---Project-
 
 **Current stage:** Milestone 1 — design draft. This README is updated throughout the project; we do not start a separate document for each milestone.
 
@@ -62,12 +60,7 @@ These are starting responsibilities, not permanent silos. We review each other's
 
 ### Screens and navigation
 
-*(Link or embed our sketches here: paper photos, draw.io or another tool.)*
-
-- `docs/sketches/found-list.jpg` — home page / list of found items with search bar and filters
-- `docs/sketches/report-item.jpg` — "Report found item" form
-- `docs/sketches/item-detail.jpg` — item detail with "This is mine" claim form
-- `docs/sketches/my-posts.jpg` — finder's view of own posts and received claims
+![Campus Lost & Found wireframe](Wireframe.drawio.svg)
 
 **Main inputs, actions and feedback**
 
