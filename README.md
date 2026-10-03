@@ -25,9 +25,30 @@ These are starting responsibilities, not permanent silos. We review each other's
 ### Scenario, users and goals
 
 - **Situation or problem:** A student finds a water bottle, student card or jacket in a lecture hall and does not know what to do with it. Meanwhile, the owner is searching for it, and has no central place to check.
+  
 - **Intended users:**
-  - *Finder* (student): wants to report a found item quickly and hand it over without hassle.
+  - *Finder* (student / Teacher): wants to report a found item quickly, hand it over with minimal effort and without becoming responsible for it long-term.
+    Especially now that staff and students in Basel have upgraded to a much bigger campus as of late 2026, lost items are becoming more common. Current options: leaving        the item at a reception desk, posting in scattered group chats, or simply leaving it in place. None offer a reliable way for the owner to find it or for the finder to      know when it has been claimed.
+    
+    Needs:
+      - A simple form that can be filled in under 1–2 minutes
+      - Clear confirmation that the item has been posted (with a reference)
+      - A straightforward way to review claims and mark the item as returned
+      - Privacy: contact details and sensitive information should not be shown publicly
+      - Confidence that only a plausible owner will receive the item
+        
+    Success: the item is claimed by the rightful owner, the finder can mark it as returned, and the process requires no further action.
+     
   - *Seeker / owner* (student): wants to check whether their missing item has been found, ideally by searching by category, place or date.
+    
+    Needs:
+    - Efficient search & filtering (keyword, category, location, date)
+    - Clear, trustworthy item details without exposing private contact info
+    - A simple, secure way to prove ownership (the “hidden detail” claim)
+    - Immediate feedback on the status of their claim
+      
+    Success: the seeker should be able to go from “I lost my bottle” to “claim submitted” in under a minute, and feel confident that only the real owner can successfully       claim the item.
+
   - *(Possible later role)* Campus staff / moderator: handles items left at a reception desk and removes inappropriate posts.
 - **Proposed benefit:** Items are returned faster, finders have a clear process, and owners have one place to look.
 - **Initial scope:** We explore **one workflow first**: a finder posts a found item, a seeker finds it and claims it, and the finder marks it as returned.
