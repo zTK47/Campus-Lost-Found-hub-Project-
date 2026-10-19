@@ -81,7 +81,7 @@ These are starting responsibilities, not permanent silos. We review each other's
 
 ### Screens and navigation
 
-![Campus Lost & Found wireframe](Wireframe.drawio.svg)
+![Campus Lost & Found Admin wireframe](Admin View Wireframe.drawio.svg)
 
 **Main inputs, actions and feedback**
 
