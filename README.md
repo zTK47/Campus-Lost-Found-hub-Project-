@@ -1,8 +1,8 @@
 # Campus-Lost-Found-Hub---Project-
 
-**Current stage:** Milestone 1 — design draft. This README is updated throughout the project; we do not start a separate document for each milestone.
+**Current stage:** Milestone 2 — contract and first implementation. This README is updated throughout the project; we do not start a separate document for each milestone.
 
-This draft contains open questions and undecided points on purpose. There is no running backend, database or complete OpenAPI contract yet. Our idea is our own, but it borrows the workflow/sketch/sample-data approach from the class exercises (the bar ordering scenario); the adaptations are noted below.
+This draft contains open questions and undecided points on purpose. Our idea is our own, but it borrows the workflow/sketch/sample-data approach from the class exercises (the bar ordering scenario); the adaptations are noted below.
 
 ## Project overview
 
@@ -162,6 +162,63 @@ These are draft ideas in plain language, not a complete CRUD implementation. Fin
 
 No external API integration is planned for this milestone.
 
+## 3a. API contract (Milestone 2)
+
+### Operation: Claim a found item
+
+- **User goal:** a seeker claims an item they believe is theirs
+- **Record affected:** creates a `Claim`, changes the related `Item.status` from `open` to `claimed`
+
+**Request:** `POST /items/{item_id}/claims`
+```json
+{
+  "claimant_name": "Alex Example",
+  "claimant_contact": "alex@example.com",
+  "proof_description": "The sticker shows a mountain and there is a dent near the lid."
+}
+```
+
+**Success response — 201 Created**
+```json
+{
+  "claimant_name": "Alex Example",
+  "claimant_contact": "alex@example.com",
+  "proof_description": "The sticker shows a mountain and there is a dent near the lid.",
+  "id": 1,
+  "item_id": 12,
+  "created_at": "2026-10-22T15:42:19.295721"
+}
+```
+![201 Created response](docs/examples/claim-success-201.png)
+
+**Failure response — 409 Conflict** (item is not `open`)
+```json
+{
+  "detail": "Item 12 is already claimed and cannot accept new claims."
+}
+```
+![409 Conflict response](docs/examples/claim-conflict-409.png)
+
+### Responsibilities
+
+| Layer | Responsibility | Location |
+|---|---|---|
+| API | Parses request, returns status codes | `app/routes/claims.py` |
+| Application logic | Checks item exists and is `open` before creating a claim | `create_claim()` |
+| Storage | In-memory dicts for now; JSON/ORM persistence planned next class | `app/db.py` |
+
+### Endpoint status
+
+| Operation | Method & path | Planned | Implemented | Tested |
+|---|---|---|---|---|
+| Report found item | `POST /items` | ✅ | ⬜ | ⬜ |
+| **Claim an item** | `POST /items/{id}/claims` | ✅ | ✅ | ✅ |
+| Mark item as returned | `PATCH /items/{id}` | ✅ | ⬜ | ⬜ |
+| Browse/search items | `GET /items` | ✅ | ⬜ | ⬜ |
+| View one item | `GET /items/{id}` | ✅ | ⬜ | ⬜ |
+
+Both outcomes above were demonstrated live via FastAPI's interactive docs (`/docs`) and are also covered by automated tests in `tests/test_claims.py` (`test_claim_open_item_succeeds`, `test_claim_already_claimed_item_rejected`), run with `python3 -m pytest`.
+
 ## 3. Project management
 
 ### Decisions, open questions and next steps
@@ -179,8 +236,8 @@ No external API integration is planned for this milestone.
 
 | Milestone | Available evidence | Status / next step |
 |---|---|---|
-| 1 — Design draft | Analysis, workflow, sketches, example JSON and proposed operations | [Links and open questions] |
-| 2 — Contract and available implementation | OpenAPI contract and implemented/tested progress | [Update later] |
+| 1 — Design draft | Analysis, workflow, sketches, example JSON and proposed operations | Complete |
+| 2 — Contract and available implementation | OpenAPI contract (auto-generated from FastAPI code), claim operation implemented and tested with success/failure examples | See section 3a above |
 | Integration — later | Revised feature scope, frontend decision, architecture and a connected workflow | [Update after classroom examples; details in Moodle] |
 
 The complete milestones, dates and assessment criteria are in the Moodle assignment. We describe contributions and decisions here; commit counts do not measure individual effort.
