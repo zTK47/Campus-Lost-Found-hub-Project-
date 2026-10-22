@@ -81,7 +81,7 @@ These are starting responsibilities, not permanent silos. We review each other's
 
 ### Screens and navigation
 
-![Campus Lost & Found Admin wireframe](Admin%20View%20Wireframe.drawio.svg)
+![Campus Lost & Found Admin wireframe](assets/admin-view-wireframe.drawio.svg)
 
 **Main inputs, actions and feedback**
 
@@ -189,7 +189,7 @@ No external API integration is planned for this milestone.
   "created_at": "2026-10-22T15:42:19.295721"
 }
 ```
-![201 Created response](docs/examples/claim-success-201.png)
+![201 Created response](assets/claim-success-201.png)
 
 **Failure response — 409 Conflict** (item is not `open`)
 ```json
@@ -197,7 +197,7 @@ No external API integration is planned for this milestone.
   "detail": "Item 12 is already claimed and cannot accept new claims."
 }
 ```
-![409 Conflict response](docs/examples/claim-conflict-409.png)
+![409 Conflict response](assets/claim-conflict-409.png)
 
 ### Responsibilities
 
