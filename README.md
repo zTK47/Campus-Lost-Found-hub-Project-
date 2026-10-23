@@ -232,6 +232,26 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
 | Should seekers also be able to post "lost" items? | Out of scope for now | Revisit after Milestone 2 |
 | Photos for items? | Nice to have, later | Decide after the first workflow works |
 
+## Getting started
+
+1. Install Python 3.11+ and the dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+2. Start the development server:
+   ```
+   uvicorn app.main\:app --reload
+   ```
+3. Open the interactive API docs at http://127.0.0.1:8000/docs
+   and try the claim operation (`POST /items/{id}/claims`).
+4. Run the automated tests:
+   ```
+   python3 -m pytest
+   ```
+
+> **Note:** Data is currently stored in memory and is lost when the server
+> stops. Persistence (JSON/ORM) will be added in the next milestone.
+
 ### Milestone progress
 
 | Milestone | Available evidence | Status / next step |
