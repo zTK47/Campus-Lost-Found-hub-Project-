@@ -56,10 +56,12 @@ These are starting responsibilities, not permanent silos. We review each other's
 
 ### User stories and first workflow
 
+- As a **user**, I want to log in with my school email, so that only authorised campus members can access the app.
 - As a **finder**, I want to be able to create, update and delete a post on a found item with a short description as well as where I found it, so that its owner can recognise it.
 - As a **seeker**, I want to search and filter found items by keyword, category and place, so that I can quickly check whether mine is there.
 - As a **seeker**, I want to claim an item and describe a detail only the owner would know, so that the finder can be sure to hand it to the right person.
 - As a **finder**, I want to mark an item as returned, so that it disappears from the list of open items.
+- As an **admin**, I want to remove expired or stalled items, so that the list stays up to date.
 
 **Out of initial scope:** payments, rewards, chat inside the app, items found off campus.
 
