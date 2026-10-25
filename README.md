@@ -291,6 +291,18 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
 | Ilir | To be completed after coaching |
 | Davide | To be completed after coaching |
 
+### Questions for the lecturer
+
+1. **Frontend:** Would you prefer server-rendered Jinja2 templates or a
+   separate JavaScript frontend?
+2. **Login:** Is a simple password-and-session login sufficient, or should we
+   use the school email identity?
+3. **Database:** Is SQLite with SQLModel an appropriate persistence solution?
+4. **Second claim:** Should a second claim be rejected with `409 Conflict` or
+   placed in a review queue?
+5. **CRUD:** Is complete CRUD for `Item` as the main entity sufficient for the
+   next milestone?
+
 ## Getting started
 
 1. Install Python 3.11+ and the dependencies:
