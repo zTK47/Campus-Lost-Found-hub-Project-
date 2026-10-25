@@ -272,6 +272,25 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
 | Should seekers also be able to post "lost" items? | Out of scope for now | Revisit after Milestone 2 |
 | Photos for items? | Nice to have, later | Decide after the first workflow works |
 
+### Coaching notes
+
+*To be completed after the coaching session.*
+
+- Feedback received:
+- Decisions made:
+- Changes to implement:
+
+### Contributions
+
+*To be completed after the coaching session and checked with the whole team.*
+
+| Contributor | Contribution |
+|---|---|
+| Fernando | To be completed after coaching |
+| Bernardo | To be completed after coaching |
+| Ilir | To be completed after coaching |
+| Davide | To be completed after coaching |
+
 ## Getting started
 
 1. Install Python 3.11+ and the dependencies:
