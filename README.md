@@ -12,7 +12,6 @@ Campus Lost & Found is a web application where students post items they have **f
 
 | Member | Initial responsibility | Next action |
 |---|---|---|
-
 | Fernando | Users and workflow | Describe needs and the steps of the "report found item → reclaim" workflow |
 | Bernardo | Sketches and interaction | Sketch the screens and feedback for that workflow |
 | Ilir     | Data and API exploration | Prepare sample JSON and clarify the proposed operations |
@@ -253,10 +252,10 @@ This case is covered by `test_claim_invalid_input_rejected` in
 | Operation | Method & path | Planned | Implemented | Tested |
 |---|---|---|---|---|
 | Report found item | `POST /items` | ✅ | ⬜ | ⬜ |
-| **Claim an item** | `POST /items/{id}/claims` | ✅ | ✅ | ✅ |
-| Mark item as returned | `PATCH /items/{id}` | ✅ | ⬜ | ⬜ |
 | Browse/search items | `GET /items` | ✅ | ⬜ | ⬜ |
 | View one item | `GET /items/{id}` | ✅ | ⬜ | ⬜ |
+| Mark item as returned | `PATCH /items/{id}` | ✅ | ⬜ | ⬜ |
+| **Claim an item** | `POST /items/{id}/claims` | — | ✅ | ✅ |
 
 Both outcomes above were demonstrated live via FastAPI's interactive docs (`/docs`) and are also covered by automated tests in `tests/test_claims.py` (`test_claim_open_item_succeeds`, `test_claim_already_claimed_item_rejected`), run with `python3 -m pytest`.
 
@@ -281,7 +280,7 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
    ```
 2. Start the development server:
    ```
-   uvicorn app.main\:app --reload
+   uvicorn app.main:app --reload
    ```
 3. Open the interactive API docs at http://127.0.0.1:8000/docs
    and try the claim operation (`POST /items/{id}/claims`).
