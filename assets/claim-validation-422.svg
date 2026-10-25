@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <rect width="900" height="420" fill="#f7f7f8"/>
+  <rect x="24" y="24" width="852" height="372" rx="8" fill="#fff" stroke="#d9d9de"/>
+  <text x="48" y="66" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#222">Campus Lost &amp; Found API</text>
+  <text x="48" y="102" font-family="Arial, sans-serif" font-size="16" fill="#555">POST /items/12/claims</text>
+  <rect x="48" y="128" width="804" height="54" rx="5" fill="#fff4f4" stroke="#d33"/>
+  <text x="68" y="162" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#b42318">422 Unprocessable Entity</text>
+  <text x="48" y="220" font-family="monospace" font-size="15" fill="#333">proof_description: String should have at least 1 character</text>
+  <text x="48" y="280" font-family="Arial, sans-serif" font-size="15" fill="#555">Request body:</text>
+  <text x="48" y="312" font-family="monospace" font-size="15" fill="#333">{ "claimant_name": "Alex Example",</text>
+  <text x="48" y="340" font-family="monospace" font-size="15" fill="#333">  "claimant_contact": "alex@example.com",</text>
+  <text x="48" y="368" font-family="monospace" font-size="15" fill="#333">  "proof_description": "" }</text>
+</svg>

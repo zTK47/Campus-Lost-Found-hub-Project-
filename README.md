@@ -201,6 +201,36 @@ No external API integration is planned for this milestone.
 ```
 ![409 Conflict response](assets/claim-conflict-409.png)
 
+**Failure response — 422 Unprocessable Entity** (invalid input)
+
+An empty `proof_description` is rejected by FastAPI validation before the
+claim logic runs. The item remains `open`:
+
+```json
+{
+  "claimant_name": "Alex Example",
+  "claimant_contact": "alex@example.com",
+  "proof_description": ""
+}
+```
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "proof_description"],
+      "msg": "String should have at least 1 character",
+      "type": "string_too_short"
+    }
+  ]
+}
+```
+
+![422 validation error response](assets/claim-validation-422.svg)
+
+This case is covered by `test_claim_invalid_input_rejected` in
+`tests/test_claims.py`.
+
 ### Responsibilities
 
 | Layer | Responsibility | Location |
