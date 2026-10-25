@@ -147,6 +147,15 @@ Sample JSON files (fictional data) are kept in `docs/examples/`:
 
 Later, we will explain where the implementation enforces each rule.
 
+### Planned item operation contracts
+
+| Operation | Input | Expected output | Possible errors |
+|---|---|---|---|
+| `POST /items` | Item title, category, optional description, location, date found, and finder contact | `201 Created` with the new item, its identifier, and status `open` | `422` for invalid or missing fields; `409` for a future uniqueness conflict |
+| `GET /items` | Optional query filters such as `q`, `category`, `location`, and `status` | `200 OK` with a JSON list of matching public items | `422` for invalid filter values |
+| `GET /items/{id}` | Integer item identifier in the path | `200 OK` with the public item details and current status | `404` if the item does not exist; `422` for an invalid identifier |
+| `PATCH /items/{id}` | Integer item identifier and an update body such as `{"status": "returned"}` | `200 OK` with the updated item | `404` if the item does not exist; `409` for an invalid state transition; `422` for a malformed body |
+
 | User goal | Proposed action | Example input | Expected output | Open question |
 |---|---|---|---|---|
 | Report a found item | Create | Title, category, description, place, date, contact | New item with identifier and status `open` | Do we require login to post? |
