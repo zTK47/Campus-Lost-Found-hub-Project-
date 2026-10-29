@@ -302,7 +302,7 @@ team; no coaching feedback has been recorded in this milestone.
 |---|---|
 | Fernando | User roles and found-item/reclaim workflow |
 | Bernardo | Screen sketches and interaction flow |
-| Ilir | Domain examples, categories and API contract |
+| Ilir | FastAPI item and claim API, Pydantic schemas, SQLModel persistence, SQLite test setup, MySQL compatibility and schema documentation |
 | Davide | README structure, decisions and milestone coordination |
 
 ### Questions for the lecturer
