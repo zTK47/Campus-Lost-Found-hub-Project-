@@ -22,7 +22,7 @@ finders do not have a clear handover process.
 |---|---|---|
 | Fernando | Users and workflow | Describe the found-item and reclaim workflow |
 | Bernardo | Sketches and interaction | Sketch the screens and feedback for that workflow |
-| Ilir | Backend API and persistence | Implement the FastAPI endpoints, SQLModel database layer, SQLite/MySQL setup, tests and schema documentation |
+| Ilir | Backend API, persistence and quality | Maintain the FastAPI item and claim endpoints, SQLModel database layer, SQLite/MySQL configuration, automated tests and schema documentation |
 | Davide | Coordination and README | Keep decisions, questions and the milestone record together |
 
 These are starting responsibilities, not permanent silos. The team reviews
@@ -301,7 +301,7 @@ team; no coaching feedback has been recorded in this milestone.
 |---|---|
 | Fernando | User roles and found-item/reclaim workflow |
 | Bernardo | Screen sketches and interaction flow |
-| Ilir | FastAPI item and claim API, Pydantic schemas, SQLModel persistence, SQLite test setup, MySQL compatibility and schema documentation |
+| Ilir | FastAPI item and claim endpoints, Pydantic request/response schemas, typed CRUD and domain errors, atomic claim handling, SQLModel persistence, SQLite/MySQL configuration, focused tests and database schema documentation |
 | Davide | README structure, decisions and milestone coordination |
 
 ### Questions for the lecturer
