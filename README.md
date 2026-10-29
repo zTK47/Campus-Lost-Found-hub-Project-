@@ -124,9 +124,6 @@ when reporting an item but is never returned publicly.
 | `claimed` | `returned` | Handover is complete | Finder |
 | `returned` | — | Terminal state | — |
 
-There is no `expired` item state in this milestone. There is no automatic
-expiration job, and `expired` must not appear as a valid status in the API.
-
 #### Claim records
 
 A claim is created when an item changes from `open` to `claimed` and is
@@ -180,10 +177,10 @@ deferred until authentication and moderation are designed.
 | Operation | Input | Expected output | Possible errors |
 |---|---|---|---|
 | `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description | `201 Created`; one claim and item status `claimed` | `404` if item is absent; `409` if not open; `422` for invalid input |
-| `GET /items/{item_id}/claims` | Item id; finder-only access in the future | `200 OK` with claims including proof | `404` if item is absent; authorization is deferred |
+| `GET /items/{item_id}/claims` | Item id; currently no authentication | `200 OK` with claims including proof | `404` if item is absent; authorization is a future requirement |
 
-No authentication is claimed by this milestone; the finder-only boundary is a
-documented future authorization requirement.
+The finder-only endpoint currently has no authentication and must not be used
+beyond the course demo until finder/admin authorization is added.
 
 ### Inspiration from existing apps or APIs
 
@@ -259,10 +256,11 @@ This case is covered by `test_claim_invalid_input_rejected` in
 
 | Layer | Responsibility | Location |
 |---|---|---|
-| API contract | Request fields, response fields and status codes | This README and the OpenAPI contract |
-| Validation | Required fields, category, email and date rules | Schema boundary |
-| Business rules | State transitions, one-claim lock and claim lifecycle | Application domain layer |
-| Storage | SQLModel persistence for the configured SQLite database | `app/database.py`, `app/models.py` |
+| API routes | Parse requests, call application functions and return response models | `app/routes/` |
+| API schemas | Required fields, categories, emails, dates and privacy-safe responses | `app/schemas.py` |
+| Business rules | State transitions, one-claim lock and typed domain errors | `app/crud.py` |
+| Error mapping | Convert domain errors to JSON HTTP errors in one place | `app/main.py` |
+| Persistence | SQLModel engine, sessions, tables and sample-data setup | `app/database.py`, `app/models.py` |
 
 ### Endpoint status
 
@@ -286,8 +284,9 @@ scenarios and concurrent duplicate claims.
 | Question / decision | Current position | Next step / owner |
 |---|---|---|
 | Do users need an account? | Yes, for a future secure release; no login in this milestone | Design authentication before production use / Team |
-| How much is public? | Public item data excludes finder contact; proof and finder claim details are private | Add authorization before deployment / Team |
+| How much is public? | `finder_contact` and `proof_description` never appear in public responses; proof is exposed only by `GET /items/{id}/claims`, which currently has no authentication | Add finder/admin authorization before deployment / Team |
 | How are sensitive items handled? | `id_card` is allowed, but special redaction and moderation are deferred | Define moderation policy / Team |
+| Should automatic item expiry be supported? | Explicitly deferred to a later milestone | Revisit after the current workflow / Team |
 | Should seekers post lost items? | Out of scope for now | Revisit after this workflow / Team |
 | Should photos be supported? | Out of scope for now | Revisit after the first workflow / Team |
 
@@ -337,9 +336,21 @@ team; no coaching feedback has been recorded in this milestone.
 
 ### Database
 
-The application uses SQLModel with SQLite by default. Set `DB_URL` to point
-the application at another SQLModel-supported database when needed. Tests
-override this value with a fresh SQLite database.
+The application uses SQLModel with SQLite by default and stores data in
+`campus_lost_found.db`. Set `DB_URL` to override the default database URL.
+MySQL is supported with a URL such as
+`mysql+pymysql://user:password@localhost:3306/campus_lost_found?charset=utf8mb4`;
+the engine uses `pool_pre_ping=True` and `pool_recycle=3600`.
+
+Create the MySQL database with:
+
+```sql
+CREATE DATABASE campus_lost_found CHARACTER SET utf8mb4;
+```
+
+The raw MySQL schema is documented in [`docs/schema.sql`](docs/schema.sql).
+Tests run against SQLite by default. Set `TEST_MYSQL_URL` to run
+`tests/test_mysql.py` against MySQL.
 
 Sample data is seeded only when both `DEBUG` and `SEED_SAMPLE_DATA` are true,
 and only when the item table is empty. `init_db()` uses `create_all()` for

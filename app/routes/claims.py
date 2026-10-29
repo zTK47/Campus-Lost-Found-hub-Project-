@@ -28,4 +28,5 @@ def list_claims(
     item_id: PositiveItemId,
     session: Session = Depends(get_session),
 ) -> list[ClaimFinder]:
+    # TODO: require finder/admin authorization before exposing claimant contact and proof beyond the course demo.
     return crud.list_claims_for_item(session, item_id)
