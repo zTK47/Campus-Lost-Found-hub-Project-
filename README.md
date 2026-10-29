@@ -245,19 +245,27 @@ This case is covered by `test_claim_invalid_input_rejected` in
 |---|---|---|
 | API | Parses request, returns status codes | `app/routes/claims.py` |
 | Application logic | Checks item exists and is `open` before creating a claim | `create_claim()` |
-| Storage | In-memory dicts for now; JSON/ORM persistence planned next class | `app/db.py` |
+| Storage | SQLModel sessions with SQLite for local tests and MySQL for deployment | `app/database.py`, `app/models.py` |
+
+Schemas enforce input shape, allowed categories, email validation, and date
+validation in `app/schemas.py`. Database access, atomic claiming, and status
+transitions are enforced in `app/crud.py`; route modules map those outcomes to
+HTTP responses and keep private fields out of public response models.
 
 ### Endpoint status
 
 | Operation | Method & path | Planned | Implemented | Tested |
 |---|---|---|---|---|
-| Report found item | `POST /items` | ✅ | ⬜ | ⬜ |
-| Browse/search items | `GET /items` | ✅ | ⬜ | ⬜ |
-| View one item | `GET /items/{id}` | ✅ | ⬜ | ⬜ |
-| Mark item as returned | `PATCH /items/{id}` | ✅ | ⬜ | ⬜ |
+| Report found item | `POST /items` | ✅ | ✅ | ✅ |
+| Browse/search items | `GET /items` | ✅ | ✅ | ✅ |
+| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ |
+| Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ |
 | **Claim an item** | `POST /items/{id}/claims` | — | ✅ | ✅ |
 
-Both outcomes above were demonstrated live via FastAPI's interactive docs (`/docs`) and are also covered by automated tests in `tests/test_claims.py` (`test_claim_open_item_succeeds`, `test_claim_already_claimed_item_rejected`), run with `python3 -m pytest`.
+These operations are available through FastAPI's interactive docs (`/docs`)
+and are covered by the SQLite tests in `tests/test_claims.py`. The optional
+MySQL suite in `tests/test_mysql.py` repeats the core scenarios and checks
+that concurrent claims produce exactly one success and one conflict.
 
 ## 3. Project management
 
@@ -297,7 +305,7 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
    separate JavaScript frontend?
 2. **Login:** Is a simple password-and-session login sufficient, or should we
    use the school email identity?
-3. **Database:** Is SQLite with SQLModel an appropriate persistence solution?
+3. **Database:** Is MySQL with SQLModel an appropriate persistence solution?
 4. **Second claim:** Should a second claim be rejected with `409 Conflict` or
    placed in a review queue?
 5. **CRUD:** Is complete CRUD for `Item` as the main entity sufficient for the
@@ -320,8 +328,43 @@ Both outcomes above were demonstrated live via FastAPI's interactive docs (`/doc
    python3 -m pytest
    ```
 
-> **Note:** Data is currently stored in memory and is lost when the server
-> stops. Persistence (JSON/ORM) will be added in the next milestone.
+### Database
+
+The application uses SQLModel with MySQL as the deployment default. SQLite
+remains available through `DB_URL` for local development and tests. Create
+the database once in MySQL:
+
+```sql
+CREATE DATABASE campus_lost_found CHARACTER SET utf8mb4;
+```
+
+Configure MySQL with `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and
+`DB_NAME` (which defaults to `campus_lost_found`). `DB_HOST` and `DB_PORT`
+default to `localhost` and `3306`; `DB_USER` defaults to `root`. If `DB_URL`
+is set, it takes precedence and is used directly:
+
+```bash
+# MySQL deployment
+export DB_HOST=localhost DB_PORT=3306 DB_USER=campus DB_PASSWORD='secret'
+export DB_NAME=campus_lost_found
+uvicorn app.main:app --reload
+
+# SQLite local run
+export DB_URL=sqlite:///./campus_lost_found.db
+uvicorn app.main:app --reload
+```
+
+`init_db()` uses SQLModel `create_all()` for this course project. Alembic
+migrations are the production-grade follow-up for schema evolution.
+
+Install and run the test suites:
+
+```bash
+pip install -r requirements.txt
+python3 -m pytest
+TEST_MYSQL_URL='mysql+pymysql://user:password@localhost:3306/mysql' \
+  python3 -m pytest tests/test_mysql.py
+```
 
 ### Milestone progress
 

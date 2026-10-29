@@ -1,26 +1,28 @@
-from fastapi import APIRouter, HTTPException
-from datetime import datetime
-from app.models import ClaimCreate, ClaimOut, ItemStatus
-from app.db import items, claims, next_claim_id
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session
+
+from app import crud
+from app.database import get_session
+from app.schemas import ClaimCreate, ClaimFinder, ClaimPublic
+
 
 router = APIRouter(tags=["claims"])
 
-@router.post("/items/{item_id}/claims", response_model=ClaimOut, status_code=201)
-def create_claim(item_id: int, claim: ClaimCreate):
-    item = items.get(item_id)
-    if item is None:
+
+@router.post("/items/{item_id}/claims", response_model=ClaimPublic, status_code=201)
+def create_claim(item_id: int, claim: ClaimCreate, session: Session = Depends(get_session)):
+    try:
+        return crud.create_claim(session, item_id, claim.model_dump())
+    except crud.ItemNotFoundError:
         raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
-    if item.status != ItemStatus.open:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Item {item_id} is already {item.status.value} and cannot accept new claims.",
-        )
-    new_claim = ClaimOut(
-        id=next_claim_id(),
-        item_id=item_id,
-        created_at=datetime.utcnow(),
-        **claim.model_dump(),
-    )
-    claims[new_claim.id] = new_claim
-    item.status = ItemStatus.claimed
-    return new_claim
+    except crud.ClaimConflictError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+
+@router.get("/items/{item_id}/claims", response_model=list[ClaimFinder])
+def list_claims(item_id: int, session: Session = Depends(get_session)):
+    # TODO: add finder authorization before exposing claimant contact and proof.
+    try:
+        return crud.list_claims_for_item(session, item_id)
+    except crud.ItemNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Item {item_id} not found")

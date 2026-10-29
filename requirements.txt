@@ -1,5 +1,8 @@
 fastapi
 uvicorn
 pydantic
+sqlmodel
+pymysql
+email-validator
 pytest
 httpx
