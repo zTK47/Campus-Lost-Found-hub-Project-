@@ -1,15 +1,14 @@
 from datetime import date, datetime, timezone
 from enum import Enum
 
-from sqlmodel import Field, Relationship, SQLModel
 from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class ItemStatus(str, Enum):
     open = "open"
     claimed = "claimed"
     returned = "returned"
-    expired = "expired"
 
 
 class Item(SQLModel, table=True):
@@ -28,7 +27,7 @@ class Item(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    claims: list["Claim"] = Relationship(back_populates="item")
+    claims: list[Claim] = Relationship(back_populates="item")
 
 
 class Claim(SQLModel, table=True):

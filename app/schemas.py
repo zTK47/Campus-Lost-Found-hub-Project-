@@ -1,18 +1,26 @@
-from datetime import date, datetime
-from typing import Literal
+from __future__ import annotations
+
+from datetime import date, datetime, timezone
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.config import CATEGORY_VALUES
+from app.models import ItemStatus
 
-CATEGORIES = ("bottle", "keys", "clothing", "electronics", "id_card", "bag", "other")
-StatusValue = Literal["open", "claimed", "returned", "expired"]
+
+Category = Enum(
+    "Category",
+    {category: category for category in CATEGORY_VALUES},
+    type=str,
+)
 
 
 class ItemCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     title: str = Field(min_length=1, max_length=100)
-    category: Literal["bottle", "keys", "clothing", "electronics", "id_card", "bag", "other"]
+    category: Category
     description: str | None = None
     location_found: str = Field(min_length=1, max_length=150)
     date_found: date
@@ -24,6 +32,12 @@ class ItemCreate(BaseModel):
         if value > date.today():
             raise ValueError("date_found must not be in the future")
         return value
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 class ItemPublic(BaseModel):
@@ -38,6 +52,11 @@ class ItemPublic(BaseModel):
     status: str
     created_at: datetime
 
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def created_at_is_utc(cls, value: datetime) -> datetime:
+        return _as_utc(value)
+
 
 class ItemDetail(ItemPublic):
     claim_count: int
@@ -46,7 +65,7 @@ class ItemDetail(ItemPublic):
 class ItemUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    status: StatusValue | None = None
+    status: ItemStatus | None = None
 
 
 class ClaimCreate(BaseModel):
@@ -66,6 +85,18 @@ class ClaimPublic(BaseModel):
     claimant_contact: EmailStr
     created_at: datetime
 
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def created_at_is_utc(cls, value: datetime) -> datetime:
+        return _as_utc(value)
+
 
 class ClaimFinder(ClaimPublic):
     proof_description: str
+
+
+class ItemListResponse(BaseModel):
+    items: list[ItemPublic]
+    count: int
+    limit: int
+    offset: int
