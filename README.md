@@ -22,7 +22,7 @@ finders do not have a clear handover process.
 |---|---|---|
 | Fernando | Users and workflow | Describe the found-item and reclaim workflow |
 | Bernardo | Sketches and interaction | Sketch the screens and feedback for that workflow |
-| Ilir | Data and API exploration | Prepare sample JSON and clarify the proposed operations |
+| Ilir | Backend API and persistence | Implement the FastAPI endpoints, SQLModel database layer, SQLite/MySQL setup, tests and schema documentation |
 | Davide | Coordination and README | Keep decisions, questions and the milestone record together |
 
 These are starting responsibilities, not permanent silos. The team reviews
