@@ -65,7 +65,7 @@ class ItemPublic(BaseModel):
                 "location_found": "Building A, lecture hall 2",
                 "date_found": "2026-10-01",
                 "status": "open",
-                "created_at": "2026-11-08T14:35:28.949393Z",
+                "created_at": "2026-11-08T14:58:43.316512Z",
             }]
         },
     )
@@ -99,7 +99,7 @@ class ItemDetail(ItemPublic):
                 "location_found": "Building A, lecture hall 2",
                 "date_found": "2026-10-01",
                 "status": "open",
-                "created_at": "2026-11-08T14:35:28.949393Z",
+                "created_at": "2026-11-08T14:58:43.316512Z",
                 "claim_count": 1,
             }]
         },
@@ -144,7 +144,7 @@ class ClaimPublic(BaseModel):
                 "claimant_name": "Alex Example",
                 "claimant_contact": "alex@example.com",
                 "status": "pending",
-                "created_at": "2026-11-08T14:35:28.949393Z",
+                "created_at": "2026-11-08T15:01:49.191598Z",
             }]
         },
     )
@@ -169,12 +169,12 @@ class ClaimFinder(ClaimPublic):
         from_attributes=True,
         json_schema_extra={
             "examples": [{
-                "id": 5,
+                "id": 1,
                 "item_id": 12,
                 "claimant_name": "Alex Example",
                 "claimant_contact": "alex@example.com",
                 "status": "pending",
-                "created_at": "2026-11-08T14:35:28.949393Z",
+                "created_at": "2026-11-08T15:01:49.191598Z",
                 "proof_description": (
                     "The sticker shows a mountain and there is a dent near the lid."
                 ),
@@ -201,7 +201,7 @@ class ItemListResponse(BaseModel):
                     "location_found": "Building A, lecture hall 2",
                     "date_found": "2026-10-01",
                     "status": "open",
-                    "created_at": "2026-11-08T14:35:28.949393Z",
+                    "created_at": "2026-11-08T14:58:43.316512Z",
                 }],
                 "count": 1,
                 "limit": 20,
@@ -218,3 +218,13 @@ class ItemListResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+class ValidationErrorDetail(BaseModel):
+    loc: list[str | int]
+    msg: str
+    type: str
+
+
+class ValidationErrorResponse(BaseModel):
+    detail: list[ValidationErrorDetail]

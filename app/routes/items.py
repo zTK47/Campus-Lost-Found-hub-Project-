@@ -17,11 +17,29 @@ from app.schemas import (
     ItemListResponse,
     ItemPublic,
     ItemUpdate,
+    ValidationErrorResponse,
 )
 
 
 router = APIRouter(prefix="/items", tags=["items"])
 PositiveItemId = Annotated[int, Path(ge=1)]
+ITEM_EXAMPLE = {
+    "id": 12,
+    "title": "Blue water bottle",
+    "category": "bottle",
+    "description": "Metal bottle with a sticker on the side.",
+    "location_found": "Building A, lecture hall 2",
+    "date_found": "2026-10-01",
+    "status": "open",
+    "created_at": "2026-11-08T14:58:43.316512Z",
+}
+VALIDATION_EXAMPLE = {
+    "detail": [{
+        "loc": ["body", "category"],
+        "msg": "Input should be 'bottle', 'keys', 'clothing', 'electronics', 'id_card', 'bag' or 'other'",
+        "type": "enum",
+    }]
+}
 
 
 @router.post(
@@ -31,7 +49,12 @@ PositiveItemId = Annotated[int, Path(ge=1)]
     summary="Report a found item",
     description="Create an open found-item record without exposing finder contact.",
     responses={
-        422: {"description": "Validation error"},
+        201: {"content": {"application/json": {"example": ITEM_EXAMPLE}}},
+        422: {
+            "model": ValidationErrorResponse,
+            "description": "Validation error",
+            "content": {"application/json": {"example": VALIDATION_EXAMPLE}},
+        },
     },
 )
 def create_item(item: ItemCreate, session: Session = Depends(get_session)) -> ItemPublic:
@@ -43,7 +66,35 @@ def create_item(item: ItemCreate, session: Session = Depends(get_session)) -> It
     response_model=ItemListResponse,
     summary="List found items",
     description="Browse public found items with optional search and filters.",
-    responses={422: {"description": "Validation error"}},
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "items": [ITEM_EXAMPLE],
+                        "count": 1,
+                        "limit": 20,
+                        "offset": 0,
+                    }
+                }
+            }
+        },
+        422: {
+            "model": ValidationErrorResponse,
+            "description": "Validation error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [{
+                            "loc": ["query", "limit"],
+                            "msg": "Input should be less than or equal to 100",
+                            "type": "less_than_equal",
+                        }]
+                    }
+                }
+            },
+        },
+    },
 )
 def list_items(
     q: str | None = None,
@@ -82,7 +133,22 @@ def list_items(
             "description": "Item not found",
             "content": {"application/json": {"example": {"detail": "Item 999 not found"}}},
         },
-        422: {"description": "Validation error"},
+        200: {"content": {"application/json": {"example": {**ITEM_EXAMPLE, "claim_count": 1}}}},
+        422: {
+            "model": ValidationErrorResponse,
+            "description": "Validation error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [{
+                            "loc": ["path", "item_id"],
+                            "msg": "Input should be greater than or equal to 1",
+                            "type": "greater_than_equal",
+                        }]
+                    }
+                }
+            },
+        },
     },
 )
 def get_item(item_id: PositiveItemId, session: Session = Depends(get_session)) -> ItemDetail:
@@ -113,7 +179,22 @@ def get_item(item_id: PositiveItemId, session: Session = Depends(get_session)) -
                 }
             },
         },
-        422: {"description": "Validation error"},
+        200: {"content": {"application/json": {"example": ITEM_EXAMPLE}}},
+        422: {
+            "model": ValidationErrorResponse,
+            "description": "Validation error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [{
+                            "loc": ["body", "status"],
+                            "msg": "Field required",
+                            "type": "missing",
+                        }]
+                    }
+                }
+            },
+        },
     },
 )
 def update_item(

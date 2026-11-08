@@ -4,5 +4,6 @@
   "claimant_name": "Alex Example",
   "claimant_contact": "alex@example.com",
   "status": "pending",
+  "created_at": "2026-11-08T15:01:49.191598Z",
   "proof_description": "The sticker shows a mountain and there is a dent near the lid."
 }
