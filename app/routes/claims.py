@@ -16,7 +16,6 @@ from app.schemas import (
     ValidationErrorResponse,
 )
 
-
 router = APIRouter(tags=["claims"])
 PositiveItemId = Annotated[int, Path(ge=1)]
 CLAIM_EXAMPLE = {

@@ -3,14 +3,13 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlsplit
 
 import pytest
-from sqlalchemy import create_engine as create_sqlalchemy_engine, text
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine as create_sqlalchemy_engine
+from sqlalchemy import text
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.database import seed_sample_data
+from app.database import get_session, seed_sample_data
 from app.main import app
-from app.database import get_session
-from fastapi.testclient import TestClient
-
 
 TEST_MYSQL_URL = os.getenv("TEST_MYSQL_URL")
 pytestmark = pytest.mark.skipif(

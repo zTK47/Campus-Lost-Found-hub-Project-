@@ -6,7 +6,7 @@ from sqlmodel import Session, func, select, update
 
 from app.config import DEFAULT_PAGE_SIZE, DEFAULT_VISIBLE_STATUSES
 from app.models import Claim, ClaimStatus, Item, ItemStatus
-from app.schemas import ClaimCreate, Category, ItemCreate
+from app.schemas import Category, ClaimCreate, ItemCreate
 
 
 def _literal_like(value: str) -> str:

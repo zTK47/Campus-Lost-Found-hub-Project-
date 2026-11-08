@@ -20,7 +20,6 @@ from app.schemas import (
     ValidationErrorResponse,
 )
 
-
 router = APIRouter(prefix="/items", tags=["items"])
 PositiveItemId = Annotated[int, Path(ge=1)]
 ITEM_EXAMPLE = {

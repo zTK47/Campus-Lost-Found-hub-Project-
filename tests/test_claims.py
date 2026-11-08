@@ -74,7 +74,7 @@ def test_accept_claim_updates_item_and_rejects_siblings(client):
 
 
 def test_accept_unknown_claim_returns_not_found(client):
-    claim = client.post("/items/12/claims", json={
+    client.post("/items/12/claims", json={
         "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
         "proof_description": "something",
     }).json()
@@ -100,7 +100,7 @@ def test_accept_claim_belonging_to_another_item_returns_not_found(client):
 
 
 def test_accept_rejected_status_returns_validation_error(client):
-    claim = client.post("/items/12/claims", json={
+    client.post("/items/12/claims", json={
         "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
         "proof_description": "something",
     }).json()

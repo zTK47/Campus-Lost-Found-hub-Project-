@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from datetime import date
 from collections.abc import Generator
+from datetime import date
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import database_url
 from app.models import Item, ItemStatus
-
 
 DATABASE_URL = database_url()
 engine = create_engine(

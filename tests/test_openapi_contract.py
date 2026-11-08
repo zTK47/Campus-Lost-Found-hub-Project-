@@ -3,8 +3,8 @@ import re
 from pathlib import Path
 
 import pytest
-from app.main import app
 
+from app.main import app
 
 OPENAPI_PATH = Path(__file__).parents[1] / "docs" / "openapi.json"
 

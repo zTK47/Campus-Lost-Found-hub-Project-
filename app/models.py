@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from enum import Enum
 
 from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text
@@ -30,7 +30,7 @@ class Item(SQLModel, table=True):
     )
     finder_contact: str = Field(sa_column=Column(String(120), nullable=False))
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
     claims: list["Claim"] = Relationship(back_populates="item")
@@ -54,7 +54,7 @@ class Claim(SQLModel, table=True):
         sa_column=Column(String(20), nullable=False, index=True),
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
     item: "Item" = Relationship(back_populates="claims")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from enum import Enum
 from typing import Literal
 
@@ -8,7 +8,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.config import CATEGORY_VALUES
 from app.models import ClaimStatus, ItemStatus
-
 
 Category = Enum(
     "Category",
@@ -49,8 +48,8 @@ class ItemCreate(BaseModel):
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 class ItemPublic(BaseModel):
