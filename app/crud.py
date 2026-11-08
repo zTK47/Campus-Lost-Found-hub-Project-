@@ -23,11 +23,6 @@ class InvalidStatusTransitionError(DomainError):
         super().__init__(f"Cannot change item {item_id} from {current} to {requested}.")
 
 
-class MissingStatusError(DomainError):
-    def __init__(self) -> None:
-        super().__init__("A status is required to update an item.")
-
-
 class ItemNotOpenError(DomainError):
     def __init__(self, item_id: int, status: str) -> None:
         super().__init__(
@@ -46,7 +41,7 @@ class ClaimNotPendingError(DomainError):
 
 
 ALLOWED_TRANSITIONS: Final[dict[ItemStatus, frozenset[ItemStatus]]] = {
-    ItemStatus.open: frozenset({ItemStatus.returned}),
+    ItemStatus.open: frozenset(),
     ItemStatus.claimed: frozenset({ItemStatus.open, ItemStatus.returned}),
     ItemStatus.returned: frozenset(),
 }
@@ -112,11 +107,8 @@ def get_item_with_claim_count(session: Session, item_id: int) -> tuple[Item, int
 def update_item_status(
     session: Session,
     item_id: int,
-    new_status: ItemStatus | None,
+    new_status: ItemStatus,
 ) -> Item:
-    if new_status is None:
-        raise MissingStatusError
-
     item = get_item(session, item_id)
     try:
         current_status = ItemStatus(item.status)

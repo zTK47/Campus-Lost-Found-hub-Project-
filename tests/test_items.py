@@ -28,6 +28,15 @@ def test_list_filters_pagination_and_hides_returned_items(client):
         "finder_contact": "finder@example.com",
     }
     created = client.post("/items", json=payload).json()
+    claim = client.post(f"/items/{created['id']}/claims", json={
+        "claimant_name": "Alex Example",
+        "claimant_contact": "alex@example.com",
+        "proof_description": "A hidden detail",
+    }).json()
+    assert client.patch(
+        f"/items/{created['id']}/claims/{claim['id']}",
+        json={"status": "accepted"},
+    ).status_code == 200
     assert client.patch(f"/items/{created['id']}", json={"status": "returned"}).status_code == 200
     assert client.get("/items", params={"q": "jacket"}).json()["count"] == 0
     assert client.get("/items", params={"status": "returned"}).json()["count"] == 1
@@ -46,13 +55,17 @@ def test_get_item_and_status_transition_errors(client):
     missing = client.get("/items/999")
     assert missing.status_code == 404
     assert missing.json() == {"detail": "Item 999 not found"}
+    missing_update = client.patch("/items/999", json={"status": "returned"})
+    assert missing_update.status_code == 404
+    assert missing_update.json() == {"detail": "Item 999 not found"}
     detail = client.get("/items/12")
     assert detail.status_code == 200
     assert "finder_contact" not in detail.json()
-    assert client.patch("/items/12", json={"status": "returned"}).status_code == 200
+    assert client.patch("/items/12", json={"status": "returned"}).status_code == 409
+    assert client.patch("/items/12", json={"status": "claimed"}).status_code == 409
     assert client.patch("/items/12", json={"status": "open"}).status_code == 409
     assert client.patch("/items/12", json={"unknown": "value"}).status_code == 422
-    assert client.patch("/items/12", json={}).status_code == 409
+    assert client.patch("/items/12", json={}).status_code == 422
     assert client.get("/items/-1").status_code == 422
 
 
@@ -69,5 +82,14 @@ def test_status_transitions_allow_reopen_and_return_once(client):
     ).status_code == 200
     assert client.patch("/items/12", json={"status": "open"}).status_code == 200
     assert client.get("/items/12/claims").json()[0]["status"] == "rejected"
+    second_claim = client.post("/items/12/claims", json={
+        "claimant_name": "Second Claimant",
+        "claimant_contact": "second@example.com",
+        "proof_description": "Another hidden detail",
+    }).json()
+    assert client.patch(
+        f"/items/12/claims/{second_claim['id']}", json={"status": "accepted"}
+    ).status_code == 200
     assert client.patch("/items/12", json={"status": "returned"}).status_code == 200
     assert client.patch("/items/12", json={"status": "open"}).status_code == 409
+    assert client.patch("/items/12", json={"status": "claimed"}).status_code == 409

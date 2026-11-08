@@ -18,7 +18,19 @@ Category = Enum(
 
 
 class ItemCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [{
+                "title": "Blue water bottle",
+                "category": "bottle",
+                "description": "Metal bottle with a sticker on the side.",
+                "location_found": "Building A, lecture hall 2",
+                "date_found": "2026-10-01",
+                "finder_contact": "finder@example.com",
+            }]
+        },
+    )
 
     title: str = Field(min_length=1, max_length=100)
     category: Category
@@ -42,7 +54,21 @@ def _as_utc(value: datetime) -> datetime:
 
 
 class ItemPublic(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [{
+                "id": 12,
+                "title": "Blue water bottle",
+                "category": "bottle",
+                "description": "Metal bottle with a sticker on the side.",
+                "location_found": "Building A, lecture hall 2",
+                "date_found": "2026-10-01",
+                "status": "open",
+                "created_at": "2026-11-08T14:35:28.949393Z",
+            }]
+        },
+    )
 
     id: int
     title: str
@@ -62,15 +88,46 @@ class ItemPublic(BaseModel):
 class ItemDetail(ItemPublic):
     claim_count: int
 
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [{
+                "id": 12,
+                "title": "Blue water bottle",
+                "category": "bottle",
+                "description": "Metal bottle with a sticker on the side.",
+                "location_found": "Building A, lecture hall 2",
+                "date_found": "2026-10-01",
+                "status": "open",
+                "created_at": "2026-11-08T14:35:28.949393Z",
+                "claim_count": 1,
+            }]
+        },
+    )
+
 
 class ItemUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"status": "returned"}]},
+    )
 
-    status: ItemStatus | None = None
+    status: ItemStatus
 
 
 class ClaimCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [{
+                "claimant_name": "Alex Example",
+                "claimant_contact": "alex@example.com",
+                "proof_description": (
+                    "The sticker shows a mountain and there is a dent near the lid."
+                ),
+            }]
+        },
+    )
 
     claimant_name: str = Field(min_length=1, max_length=100)
     claimant_contact: EmailStr
@@ -78,7 +135,19 @@ class ClaimCreate(BaseModel):
 
 
 class ClaimPublic(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [{
+                "id": 1,
+                "item_id": 12,
+                "claimant_name": "Alex Example",
+                "claimant_contact": "alex@example.com",
+                "status": "pending",
+                "created_at": "2026-11-08T14:35:28.949393Z",
+            }]
+        },
+    )
 
     id: int
     item_id: int
@@ -96,6 +165,23 @@ class ClaimPublic(BaseModel):
 class ClaimFinder(ClaimPublic):
     proof_description: str
 
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [{
+                "id": 5,
+                "item_id": 12,
+                "claimant_name": "Alex Example",
+                "claimant_contact": "alex@example.com",
+                "status": "pending",
+                "created_at": "2026-11-08T14:35:28.949393Z",
+                "proof_description": (
+                    "The sticker shows a mountain and there is a dent near the lid."
+                ),
+            }]
+        },
+    )
+
 
 class ClaimDecision(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -104,7 +190,31 @@ class ClaimDecision(BaseModel):
 
 
 class ItemListResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [{
+                "items": [{
+                    "id": 12,
+                    "title": "Blue water bottle",
+                    "category": "bottle",
+                    "description": "Metal bottle with a sticker on the side.",
+                    "location_found": "Building A, lecture hall 2",
+                    "date_found": "2026-10-01",
+                    "status": "open",
+                    "created_at": "2026-11-08T14:35:28.949393Z",
+                }],
+                "count": 1,
+                "limit": 20,
+                "offset": 0,
+            }]
+        },
+    )
+
     items: list[ItemPublic]
     count: int
     limit: int
     offset: int
+
+
+class ErrorResponse(BaseModel):
+    detail: str

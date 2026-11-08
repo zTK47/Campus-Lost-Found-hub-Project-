@@ -1,0 +1,953 @@
+{
+  "components": {
+    "schemas": {
+      "Category": {
+        "enum": [
+          "bottle",
+          "keys",
+          "clothing",
+          "electronics",
+          "id_card",
+          "bag",
+          "other"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "ClaimCreate": {
+        "additionalProperties": false,
+        "examples": [
+          {
+            "claimant_contact": "alex@example.com",
+            "claimant_name": "Alex Example",
+            "proof_description": "The sticker shows a mountain and there is a dent near the lid."
+          }
+        ],
+        "properties": {
+          "claimant_contact": {
+            "format": "email",
+            "title": "Claimant Contact",
+            "type": "string"
+          },
+          "claimant_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Claimant Name",
+            "type": "string"
+          },
+          "proof_description": {
+            "minLength": 1,
+            "title": "Proof Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claimant_name",
+          "claimant_contact",
+          "proof_description"
+        ],
+        "title": "ClaimCreate",
+        "type": "object"
+      },
+      "ClaimDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "const": "accepted",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ClaimDecision",
+        "type": "object"
+      },
+      "ClaimFinder": {
+        "examples": [
+          {
+            "claimant_contact": "alex@example.com",
+            "claimant_name": "Alex Example",
+            "created_at": "2026-11-08T14:35:28.949393Z",
+            "id": 5,
+            "item_id": 12,
+            "proof_description": "The sticker shows a mountain and there is a dent near the lid.",
+            "status": "pending"
+          }
+        ],
+        "properties": {
+          "claimant_contact": {
+            "format": "email",
+            "title": "Claimant Contact",
+            "type": "string"
+          },
+          "claimant_name": {
+            "title": "Claimant Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "proof_description": {
+            "title": "Proof Description",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "claimant_name",
+          "claimant_contact",
+          "status",
+          "created_at",
+          "proof_description"
+        ],
+        "title": "ClaimFinder",
+        "type": "object"
+      },
+      "ClaimPublic": {
+        "examples": [
+          {
+            "claimant_contact": "alex@example.com",
+            "claimant_name": "Alex Example",
+            "created_at": "2026-11-08T14:35:28.949393Z",
+            "id": 1,
+            "item_id": 12,
+            "status": "pending"
+          }
+        ],
+        "properties": {
+          "claimant_contact": {
+            "format": "email",
+            "title": "Claimant Contact",
+            "type": "string"
+          },
+          "claimant_name": {
+            "title": "Claimant Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "claimant_name",
+          "claimant_contact",
+          "status",
+          "created_at"
+        ],
+        "title": "ClaimPublic",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "ItemCreate": {
+        "additionalProperties": false,
+        "examples": [
+          {
+            "category": "bottle",
+            "date_found": "2026-10-01",
+            "description": "Metal bottle with a sticker on the side.",
+            "finder_contact": "finder@example.com",
+            "location_found": "Building A, lecture hall 2",
+            "title": "Blue water bottle"
+          }
+        ],
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "date_found": {
+            "format": "date",
+            "title": "Date Found",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "finder_contact": {
+            "format": "email",
+            "title": "Finder Contact",
+            "type": "string"
+          },
+          "location_found": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Location Found",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "category",
+          "location_found",
+          "date_found",
+          "finder_contact"
+        ],
+        "title": "ItemCreate",
+        "type": "object"
+      },
+      "ItemDetail": {
+        "examples": [
+          {
+            "category": "bottle",
+            "claim_count": 1,
+            "created_at": "2026-11-08T14:35:28.949393Z",
+            "date_found": "2026-10-01",
+            "description": "Metal bottle with a sticker on the side.",
+            "id": 12,
+            "location_found": "Building A, lecture hall 2",
+            "status": "open",
+            "title": "Blue water bottle"
+          }
+        ],
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "claim_count": {
+            "title": "Claim Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "date_found": {
+            "format": "date",
+            "title": "Date Found",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "location_found": {
+            "title": "Location Found",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "category",
+          "description",
+          "location_found",
+          "date_found",
+          "status",
+          "created_at",
+          "claim_count"
+        ],
+        "title": "ItemDetail",
+        "type": "object"
+      },
+      "ItemListResponse": {
+        "examples": [
+          {
+            "count": 1,
+            "items": [
+              {
+                "category": "bottle",
+                "created_at": "2026-11-08T14:35:28.949393Z",
+                "date_found": "2026-10-01",
+                "description": "Metal bottle with a sticker on the side.",
+                "id": 12,
+                "location_found": "Building A, lecture hall 2",
+                "status": "open",
+                "title": "Blue water bottle"
+              }
+            ],
+            "limit": 20,
+            "offset": 0
+          }
+        ],
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemPublic"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "count",
+          "limit",
+          "offset"
+        ],
+        "title": "ItemListResponse",
+        "type": "object"
+      },
+      "ItemPublic": {
+        "examples": [
+          {
+            "category": "bottle",
+            "created_at": "2026-11-08T14:35:28.949393Z",
+            "date_found": "2026-10-01",
+            "description": "Metal bottle with a sticker on the side.",
+            "id": 12,
+            "location_found": "Building A, lecture hall 2",
+            "status": "open",
+            "title": "Blue water bottle"
+          }
+        ],
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "date_found": {
+            "format": "date",
+            "title": "Date Found",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "location_found": {
+            "title": "Location Found",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "category",
+          "description",
+          "location_found",
+          "date_found",
+          "status",
+          "created_at"
+        ],
+        "title": "ItemPublic",
+        "type": "object"
+      },
+      "ItemStatus": {
+        "enum": [
+          "open",
+          "claimed",
+          "returned"
+        ],
+        "title": "ItemStatus",
+        "type": "string"
+      },
+      "ItemUpdate": {
+        "additionalProperties": false,
+        "examples": [
+          {
+            "status": "returned"
+          }
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ItemStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ItemUpdate",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "API for reporting, searching, and claiming lost or found items on campus.",
+    "title": "Campus Lost & Found API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/items": {
+      "get": {
+        "description": "Browse public found items with optional search and filters.",
+        "operationId": "list_items_items_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "location",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Location"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ItemStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "List found items",
+        "tags": [
+          "items"
+        ]
+      },
+      "post": {
+        "description": "Create an open found-item record without exposing finder contact.",
+        "operationId": "create_item_items_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Report a found item",
+        "tags": [
+          "items"
+        ]
+      }
+    },
+    "/items/{item_id}": {
+      "get": {
+        "description": "Return public item details and the number of claims.",
+        "operationId": "get_item_items__item_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 999 not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Item not found"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Get one found item",
+        "tags": [
+          "items"
+        ]
+      },
+      "patch": {
+        "description": "Reopen or mark a claimed item as returned.",
+        "operationId": "update_item_items__item_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 999 not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Item not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Cannot change item 12 from open to claimed."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid status transition"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Update item status",
+        "tags": [
+          "items"
+        ]
+      }
+    },
+    "/items/{item_id}/claims": {
+      "get": {
+        "description": "Return finder-only claim details, including proof. This endpoint currently has no authentication.",
+        "operationId": "list_claims_items__item_id__claims_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClaimFinder"
+                  },
+                  "title": "Response List Claims Items  Item Id  Claims Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 999 not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Item not found"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Review item claims",
+        "tags": [
+          "claims"
+        ]
+      },
+      "post": {
+        "description": "Create a pending claim while the item remains open.",
+        "operationId": "create_claim_items__item_id__claims_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 999 not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Item not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 12 is already claimed and cannot accept new claims."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Item is not open"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Submit an item claim",
+        "tags": [
+          "claims"
+        ]
+      }
+    },
+    "/items/{item_id}/claims/{claim_id}": {
+      "patch": {
+        "description": "Accept one pending claim and reject the remaining pending claims.",
+        "operationId": "accept_claim_items__item_id__claims__claim_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "claim_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Claim Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Claim 999 not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Claim not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Item 12 is already claimed and cannot accept new claims."
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Claim cannot be accepted"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "summary": "Accept a claim",
+        "tags": [
+          "claims"
+        ]
+      }
+    }
+  }
+}

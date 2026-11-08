@@ -1,4 +1,4 @@
-# Campus-Lost-Found-Hub---Project-
+# Campus Lost & Found Hub
 
 **Current stage:** Milestone 2 — contract and first implementation. This
 README is the single living design document; we do not start a separate
@@ -117,7 +117,7 @@ when reporting an item but is never returned publicly.
 #### Item state machine
 
 | Current state | Next state | Trigger | Actor |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | `open` | `claimed` | Finder accepts a pending claim atomically | Finder |
 | `claimed` | `open` | Finder reopens the item after reviewing the claim | Finder |
 | `claimed` | `returned` | Handover is complete | Finder |
@@ -159,6 +159,8 @@ deferred until authentication and moderation are designed.
 - Multiple claims are allowed while an item is `open`; the finder accepts one
   pending claim, atomically locking the item as `claimed` and rejecting
   remaining pending claims.
+- Item PATCH permits only `claimed` to `open` or `returned`; `open` to
+  `claimed` occurs only when the finder accepts a pending claim.
 - Returned items are hidden from the default list, but may be requested with
   an explicit status filter.
 - Reopening a claimed item retains its claim history and returns the item to
@@ -172,7 +174,7 @@ deferred until authentication and moderation are designed.
 | `POST /items` | Required title, category, location, date and finder contact; optional description | `201 Created` with an identifier and status `open`; finder contact omitted from response | `422` for missing/invalid fields |
 | `GET /items` | Optional `q`, `category`, `location`, `status`, `limit` and `offset` | `200 OK` with public items, count, limit and offset | `422` for invalid filters or pagination |
 | `GET /items/{id}` | Integer item identifier | `200 OK` with public item details and claim count | `404` if absent; `422` for invalid identifier |
-| `PATCH /items/{id}` | `{"status":"returned"}` | `200 OK` with updated public item | `404` if absent; `409` for an invalid transition; `422` for malformed input |
+| `PATCH /items/{id}` | `{"status":"open"}` or `{"status":"returned"}` | `200 OK` with updated public item | `404` if absent; `409` for an invalid transition; `422` if status is missing or malformed |
 
 ### Claim operation contracts
 
@@ -221,7 +223,7 @@ No external API integration is planned for this milestone.
   "id": 1,
   "item_id": 12,
   "status": "pending",
-  "created_at": "2026-10-22T15:42:19.295721"
+  "created_at": "2026-11-08T15:01:49.191598Z"
 }
 ```
 
@@ -290,19 +292,32 @@ This case is covered by `test_claim_invalid_input_rejected` in
 
 ### Endpoint status
 
-| Operation | Method & path | Planned | Implemented | Tested |
-|---|---|---|---|---|
-| Report found item | `POST /items` | ✅ | ✅ | ✅ |
-| Browse/search items | `GET /items` | ✅ | ✅ | ✅ |
-| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ |
-| Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ |
-| Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ |
-| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ |
-| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ |
+| Operation | Method & path | Planned | Implemented | Tested | Test(s) |
+|---|---|---|---|---|---|
+| Report found item | `POST /items` | ✅ | ✅ | ✅ | `test_create_item_validates_category_date_and_required_fields` |
+| Browse/search items | `GET /items` | ✅ | ✅ | ✅ | `test_list_filters_pagination_and_hides_returned_items` |
+| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ | `test_get_item_and_status_transition_errors` |
+| Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ | `test_status_transitions_allow_reopen_and_return_once` |
+| Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claim_open_item_succeeds` |
+| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view` |
+| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings` |
 
-The implemented operations are available through FastAPI's interactive docs
-and are covered by the SQLite tests. An optional MySQL suite covers the core
-scenarios and concurrent claim acceptance.
+The [exported OpenAPI contract](docs/openapi.json) is regenerated with
+`python3 scripts/export_openapi.py` and verified with `python3 -m pytest`.
+The contract test fails if the exported specification and implementation
+diverge. The implemented operations are available through FastAPI's
+interactive docs and are covered by the SQLite tests. An optional MySQL suite
+covers the core scenarios and concurrent claim acceptance.
+
+### Known limitations (not part of Milestone 2)
+
+- `PATCH /items/{id}` and `GET /items/{id}/claims` are currently unauthenticated;
+  add finder/admin authorization before deployment.
+- There is no rate limiting; add operational protections before production use.
+- Contact data is stored as plaintext; design secure account and data handling
+  before a future release.
+- `id_card` items are publicly listed; define redaction and moderation policy
+  before production use.
 
 ## 3. Project management
 

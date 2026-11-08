@@ -33,7 +33,7 @@ class Item(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    claims: list[Claim] = Relationship(back_populates="item")
+    claims: list["Claim"] = Relationship(back_populates="item")
 
 
 class Claim(SQLModel, table=True):
@@ -57,4 +57,4 @@ class Claim(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    item: Item = Relationship(back_populates="claims")
+    item: "Item" = Relationship(back_populates="claims")
