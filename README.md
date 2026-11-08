@@ -298,7 +298,6 @@ Only `{"status":"accepted"}` is valid:
 {"status": "rejected"}
 ```
 
-![422 validation error response](assets/claim-validation-422.svg)
 ![422 invalid claim decision](assets/accept-validation-422.png)
 
 An absent claim, or a claim belonging to another item, returns `404 Not Found`:
@@ -327,10 +326,10 @@ is covered by `test_accept_unknown_claim_returns_not_found`.
 |---|---|---|---|---|---|
 | Report found item | `POST /items` | ✅ | ✅ | ✅ | `test_create_item_validates_category_date_and_required_fields`, `test_item_input_length_limits` |
 | Browse/search items | `GET /items` | ✅ | ✅ | ✅ | `test_list_filters_pagination_and_hides_returned_items`, `test_list_pagination_is_deterministic_and_non_overlapping`, `test_search_matches_literal_wildcards` |
-| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ | `test_get_item_and_status_transition_errors`, `test_claim_missing_item_returns_not_found` |
+| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ | `test_get_item_and_status_transition_errors` |
 | Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ | `test_status_transitions_allow_reopen_and_return_once`, `test_get_item_and_status_transition_errors` |
 | Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claim_open_item_succeeds`, `test_claim_invalid_input_rejected`, `test_claim_missing_item_returns_not_found` |
-| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view`, `test_claim_missing_item_returns_not_found` |
+| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view`, `test_list_claims_for_missing_item_returns_not_found` |
 | Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings`, `test_accept_claim_on_claimed_item_returns_conflict`, `test_accept_rejected_claim_returns_conflict`, `test_accept_rejected_status_returns_validation_error`, `test_accept_unknown_claim_returns_not_found` |
 
 The [exported OpenAPI contract](docs/openapi.json) is regenerated with

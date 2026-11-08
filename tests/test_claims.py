@@ -205,6 +205,12 @@ def test_claims_detail_is_finder_only_view(client):
     assert response.json()[0]["proof_description"] == "A hidden detail"
 
 
+def test_list_claims_for_missing_item_returns_not_found(client):
+    response = client.get("/items/999/claims")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Item 999 not found"}
+
+
 def test_claim_missing_item_returns_not_found(client):
     response = client.post("/items/999/claims", json={
         "claimant_name": "Alex Example",
