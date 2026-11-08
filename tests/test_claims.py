@@ -96,6 +96,55 @@ def test_accept_claim_validation_and_missing_claims(client):
     ).status_code == 409
 
 
+def test_accept_claim_on_claimed_item_returns_conflict(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
+    assert client.patch(
+        f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
+    ).status_code == 200
+    response = client.patch(
+        f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
+    )
+    assert response.status_code == 409
+    assert response.json() == {
+        "detail": "Item 12 is claimed and cannot accept a claim decision."
+    }
+
+
+def test_accept_claim_on_returned_item_returns_conflict(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
+    client.patch(f"/items/12/claims/{claim['id']}", json={"status": "accepted"})
+    assert client.patch("/items/12", json={"status": "returned"}).status_code == 200
+    response = client.patch(
+        f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
+    )
+    assert response.status_code == 409
+    assert response.json() == {
+        "detail": "Item 12 is returned and cannot accept a claim decision."
+    }
+
+
+def test_accept_rejected_claim_returns_conflict(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
+    client.patch(f"/items/12/claims/{claim['id']}", json={"status": "accepted"})
+    assert client.patch("/items/12", json={"status": "open"}).status_code == 200
+    response = client.patch(
+        f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
+    )
+    assert response.status_code == 409
+    assert response.json() == {
+        "detail": "Claim 1 is already rejected and cannot be accepted."
+    }
+
+
 def test_claims_detail_is_finder_only_view(client):
     client.post("/items/12/claims", json={
         "claimant_name": "Alex Example",
@@ -147,7 +196,11 @@ def test_concurrent_claim_acceptance_only_one_succeeds(tmp_path):
             barrier.wait()
             try:
                 crud.accept_claim(session, 12, claim_id)
-            except (crud.ItemNotOpenError, crud.ClaimNotPendingError):
+            except (
+                crud.ItemNotOpenError,
+                crud.ItemNotOpenForAcceptanceError,
+                crud.ClaimNotPendingError,
+            ):
                 return 409
             return 200
 

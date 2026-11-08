@@ -30,6 +30,13 @@ class ItemNotOpenError(DomainError):
         )
 
 
+class ItemNotOpenForAcceptanceError(DomainError):
+    def __init__(self, item_id: int, status: str) -> None:
+        super().__init__(
+            f"Item {item_id} is {status} and cannot accept a claim decision."
+        )
+
+
 class ClaimNotFoundError(DomainError):
     def __init__(self, claim_id: int) -> None:
         super().__init__(f"Claim {claim_id} not found")
@@ -161,6 +168,12 @@ def accept_claim(session: Session, item_id: int, claim_id: int) -> Claim:
     if claim is None:
         raise ClaimNotFoundError(claim_id)
 
+    item = get_item(session, item_id)
+    if item.status == ItemStatus.open.value and claim.status != ClaimStatus.pending.value:
+        raise ClaimNotPendingError(claim_id, claim.status)
+    if item.status != ItemStatus.open.value:
+        raise ItemNotOpenForAcceptanceError(item_id, item.status)
+
     item_result = session.exec(
         update(Item)
         .where(Item.id == item_id, Item.status == ItemStatus.open.value)
@@ -168,7 +181,8 @@ def accept_claim(session: Session, item_id: int, claim_id: int) -> Claim:
     )
     if item_result.rowcount != 1:
         session.rollback()
-        raise ItemNotOpenError(item_id, "claimed")
+        session.refresh(item)
+        raise ItemNotOpenForAcceptanceError(item_id, item.status)
 
     claim_result = session.exec(
         update(Claim)

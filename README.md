@@ -182,7 +182,7 @@ deferred until authentication and moderation are designed.
 |---|---|---|---|
 | `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description | `201 Created`; pending claim and item remains `open` | `404` if item is absent; `409` if not open; `422` for invalid input |
 | `GET /items/{item_id}/claims` | Item id; currently no authentication | `200 OK` with claims including proof | `404` if item is absent; authorization is a future requirement |
-| `PATCH /items/{item_id}/claims/{claim_id}` | `{"status":"accepted"}` | `200 OK` with accepted claim; item becomes `claimed` and sibling claims are rejected | `404` if claim is absent or belongs to another item; `409` if item is not open or claim is not pending; `422` for invalid input |
+| `PATCH /items/{item_id}/claims/{claim_id}` | `{"status":"accepted"}` | `200 OK` with accepted claim; item becomes `claimed` and sibling claims are rejected | `404` if claim is absent or belongs to another item; `409` if the item is not open or the claim is not pending; `422` for invalid input |
 
 The finder-only endpoint currently has no authentication and must not be used
 beyond the course demo until finder/admin authorization is added.
@@ -234,7 +234,7 @@ The proof is accepted as input but is omitted from this public response.
 
 ```json
 {
-  "detail": "Item 12 is already claimed and cannot accept new claims."
+  "detail": "Item 12 is claimed and cannot accept a claim decision."
 }
 ```
 
