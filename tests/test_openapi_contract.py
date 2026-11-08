@@ -109,8 +109,30 @@ def test_documented_domain_error_examples_match_api(client):
     accept_conflict = client.patch(
         f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
     )
-    accept_example = paths[
+    accept_examples = paths[
         "/items/{item_id}/claims/{claim_id}"
-    ]["patch"]["responses"]["409"]["content"]["application/json"]["example"]
+    ]["patch"]["responses"]["409"]["content"]["application/json"]["examples"]
     assert accept_conflict.status_code == 409
-    assert accept_conflict.json()["detail"] == accept_example["detail"]
+    assert accept_conflict.json()["detail"] == accept_examples["item_not_open"]["value"]["detail"]
+
+    client.patch("/items/12", json={"status": "open"})
+    first = client.post("/items/12/claims", json={
+        "claimant_name": "First Claimant",
+        "claimant_contact": "first@example.com",
+        "proof_description": "first proof",
+    }).json()
+    rejected = client.post("/items/12/claims", json={
+        "claimant_name": "Rejected Claimant",
+        "claimant_contact": "rejected@example.com",
+        "proof_description": "rejected proof",
+    }).json()
+    client.patch(f"/items/12/claims/{first['id']}", json={"status": "accepted"})
+    client.patch("/items/12", json={"status": "open"})
+    claim_not_pending = client.patch(
+        f"/items/12/claims/{rejected['id']}", json={"status": "accepted"}
+    )
+    assert claim_not_pending.status_code == 409
+    assert (
+        claim_not_pending.json()["detail"]
+        == accept_examples["claim_not_pending"]["value"]["detail"]
+    )

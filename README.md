@@ -239,6 +239,24 @@ The proof is accepted as input but is omitted from this public response.
   "detail": "Item 12 is already claimed and cannot accept new claims."
 }
 ```
+![409 Conflict response](assets/claim-conflict-409.png)
+
+**Failure response — 422 Unprocessable Entity** (invalid claim input)
+
+An empty `proof_description` is rejected before claim creation:
+
+```json
+{
+  "claimant_name": "Alex Example",
+  "claimant_contact": "alex@example.com",
+  "proof_description": ""
+}
+```
+
+![422 validation error response](assets/claim-validation-422.svg)
+
+This case is covered by `test_claim_invalid_input_rejected` in
+`tests/test_claims.py`.
 
 ### Operation: Accept a claim
 
@@ -254,7 +272,7 @@ The selected claim is returned with `"status": "accepted"`; other pending
 claims for the item become `"rejected"`.
 ![200 Accepted claim response](assets/accept-success-200.png)
 
-**Failure response — 409 Conflict** (item is not `open` or claim is not pending)
+**Failure response — 409 Conflict** (item is not `open`)
 
 ```json
 {
@@ -262,8 +280,15 @@ claims for the item become `"rejected"`.
 }
 ```
 
-![409 Conflict response](assets/claim-conflict-409.png)
 ![409 Claim acceptance conflict](assets/accept-conflict-409.png)
+
+When the claim is not pending:
+
+```json
+{
+  "detail": "Claim 3 is already rejected and cannot be accepted."
+}
+```
 
 **Failure response — 422 Unprocessable Entity** (invalid decision)
 
@@ -279,8 +304,12 @@ Only `{"status":"accepted"}` is valid:
 An absent claim, or a claim belonging to another item, returns `404 Not Found`:
 ![404 claim not found](assets/accept-not-found-404.png)
 
-This case is covered by `test_claim_invalid_input_rejected` in
-`tests/test_claims.py`.
+The item conflict is covered by
+`test_accept_claim_on_claimed_item_returns_conflict`; the rejected-claim
+conflict is covered by `test_accept_rejected_claim_returns_conflict`.
+The invalid decision is covered by
+`test_accept_rejected_status_returns_validation_error`, and the missing claim
+is covered by `test_accept_unknown_claim_returns_not_found`.
 
 ### Responsibilities
 
@@ -296,13 +325,13 @@ This case is covered by `test_claim_invalid_input_rejected` in
 
 | Operation | Method & path | Planned | Implemented | Tested | Test(s) |
 |---|---|---|---|---|---|
-| Report found item | `POST /items` | ✅ | ✅ | ✅ | `test_create_item_validates_category_date_and_required_fields` |
-| Browse/search items | `GET /items` | ✅ | ✅ | ✅ | `test_list_filters_pagination_and_hides_returned_items` |
-| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ | `test_get_item_and_status_transition_errors` |
-| Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ | `test_status_transitions_allow_reopen_and_return_once` |
-| Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claim_open_item_succeeds` |
-| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view` |
-| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings`, `test_accept_unknown_claim_returns_not_found`, `test_accept_already_accepted_claim_returns_conflict` |
+| Report found item | `POST /items` | ✅ | ✅ | ✅ | `test_create_item_validates_category_date_and_required_fields`, `test_item_input_length_limits` |
+| Browse/search items | `GET /items` | ✅ | ✅ | ✅ | `test_list_filters_pagination_and_hides_returned_items`, `test_list_pagination_is_deterministic_and_non_overlapping`, `test_search_matches_literal_wildcards` |
+| View one item | `GET /items/{id}` | ✅ | ✅ | ✅ | `test_get_item_and_status_transition_errors`, `test_claim_missing_item_returns_not_found` |
+| Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ | `test_status_transitions_allow_reopen_and_return_once`, `test_get_item_and_status_transition_errors` |
+| Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claim_open_item_succeeds`, `test_claim_invalid_input_rejected`, `test_claim_missing_item_returns_not_found` |
+| Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view`, `test_claim_missing_item_returns_not_found` |
+| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings`, `test_accept_claim_on_claimed_item_returns_conflict`, `test_accept_rejected_claim_returns_conflict`, `test_accept_rejected_status_returns_validation_error`, `test_accept_unknown_claim_returns_not_found` |
 
 The [exported OpenAPI contract](docs/openapi.json) is regenerated with
 `python3 scripts/export_openapi.py` and verified with `python3 -m pytest`.

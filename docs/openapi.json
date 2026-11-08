@@ -1169,8 +1169,19 @@
           "409": {
             "content": {
               "application/json": {
-                "example": {
-                  "detail": "Item 12 is claimed and cannot accept a claim decision."
+                "examples": {
+                  "claim_not_pending": {
+                    "summary": "Claim is not pending",
+                    "value": {
+                      "detail": "Claim 3 is already rejected and cannot be accepted."
+                    }
+                  },
+                  "item_not_open": {
+                    "summary": "Item is not open",
+                    "value": {
+                      "detail": "Item 12 is claimed and cannot accept a claim decision."
+                    }
+                  }
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"

@@ -142,10 +142,23 @@ def list_claims(
             "description": "Claim cannot be accepted",
             "content": {
                 "application/json": {
-                    "example": {
-                        "detail": (
-                            "Item 12 is claimed and cannot accept a claim decision."
-                        )
+                    "examples": {
+                        "item_not_open": {
+                            "summary": "Item is not open",
+                            "value": {
+                                "detail": (
+                                    "Item 12 is claimed and cannot accept a claim decision."
+                                )
+                            },
+                        },
+                        "claim_not_pending": {
+                            "summary": "Claim is not pending",
+                            "value": {
+                                "detail": (
+                                    "Claim 3 is already rejected and cannot be accepted."
+                                )
+                            },
+                        },
                     }
                 }
             },
