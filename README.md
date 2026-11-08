@@ -236,7 +236,7 @@ The proof is accepted as input but is omitted from this public response.
 
 ```json
 {
-  "detail": "Item 12 is claimed and cannot accept a claim decision."
+  "detail": "Item 12 is already claimed and cannot accept new claims."
 }
 ```
 
@@ -258,7 +258,7 @@ claims for the item become `"rejected"`.
 
 ```json
 {
-  "detail": "Item 12 is already claimed and cannot accept new claims."
+  "detail": "Item 12 is claimed and cannot accept a claim decision."
 }
 ```
 
@@ -313,8 +313,14 @@ covers the core scenarios and concurrent claim acceptance.
 
 ### Known limitations (not part of Milestone 2)
 
-- `PATCH /items/{id}` and `GET /items/{id}/claims` are currently unauthenticated;
-  add finder/admin authorization before deployment.
+- `PATCH /items/{id}`, `PATCH /items/{item_id}/claims/{claim_id}` and
+  `GET /items/{id}/claims` are unauthenticated; finder authorization is planned
+  before deployment.
+- There is no claim rejection operation. Pending claims stay pending until the
+  finder accepts one, and reopening an item rejects its accepted claim, so
+  earlier claimants submit a new claim.
+- There is no per-item claim limit; define claim-volume controls in a future
+  milestone.
 - There is no rate limiting; add operational protections before production use.
 - Contact data is stored as plaintext; design secure account and data handling
   before a future release.
