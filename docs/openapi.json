@@ -1058,7 +1058,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "detail": "Item 12 is claimed and cannot accept a claim decision."
+                  "detail": "Item 12 is already claimed and cannot accept new claims."
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
@@ -1168,7 +1168,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "detail": "Item 12 is already claimed and cannot accept new claims."
+                  "detail": "Item 12 is claimed and cannot accept a claim decision."
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"

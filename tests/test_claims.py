@@ -67,12 +67,19 @@ def test_accept_claim_updates_item_and_rejects_siblings(client):
     }
 
 
-def test_accept_claim_validation_and_missing_claims(client):
+def test_accept_unknown_claim_returns_not_found(client):
     claim = client.post("/items/12/claims", json={
         "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
         "proof_description": "something",
     }).json()
     assert client.patch("/items/12/claims/999", json={"status": "accepted"}).status_code == 404
+
+
+def test_accept_claim_belonging_to_another_item_returns_not_found(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
     other_item = client.post("/items", json={
         "title": "Green bag",
         "category": "bag",
@@ -84,16 +91,52 @@ def test_accept_claim_validation_and_missing_claims(client):
         f"/items/{other_item['id']}/claims/{claim['id']}",
         json={"status": "accepted"},
     ).status_code == 404
+
+
+def test_accept_rejected_status_returns_validation_error(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
     assert client.patch("/items/12/claims/1", json={"status": "rejected"}).status_code == 422
+
+
+def test_accept_empty_body_returns_validation_error(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
     assert client.patch(
         f"/items/12/claims/{claim['id']}", json={}
     ).status_code == 422
+
+
+def test_accept_already_accepted_claim_returns_conflict(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
     assert client.patch(
         f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
     ).status_code == 200
     assert client.patch(
         f"/items/12/claims/{claim['id']}", json={"status": "accepted"}
     ).status_code == 409
+
+
+def test_reopening_rejects_accepted_claim_and_allows_new_claim(client):
+    claim = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example", "claimant_contact": "a@example.com",
+        "proof_description": "something",
+    }).json()
+    client.patch(f"/items/12/claims/{claim['id']}", json={"status": "accepted"})
+    assert client.patch("/items/12", json={"status": "open"}).status_code == 200
+    assert client.get("/items/12/claims").json()[0]["status"] == "rejected"
+    response = client.post("/items/12/claims", json={
+        "claimant_name": "New Claimant", "claimant_contact": "new@example.com",
+        "proof_description": "new proof",
+    })
+    assert response.status_code == 201
 
 
 def test_accept_claim_on_claimed_item_returns_conflict(client):

@@ -61,7 +61,7 @@ CLAIM_VALIDATION_EXAMPLE = {
                 "application/json": {
                     "example": {
                         "detail": (
-                            "Item 12 is claimed and cannot accept a claim decision."
+                            "Item 12 is already claimed and cannot accept new claims."
                         )
                     }
                 }
@@ -145,7 +145,7 @@ def list_claims(
                 "application/json": {
                     "example": {
                         "detail": (
-                            "Item 12 is already claimed and cannot accept new claims."
+                            "Item 12 is claimed and cannot accept a claim decision."
                         )
                     }
                 }

@@ -300,7 +300,7 @@ This case is covered by `test_claim_invalid_input_rejected` in
 | Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ | `test_status_transitions_allow_reopen_and_return_once` |
 | Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claim_open_item_succeeds` |
 | Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ | `test_claims_detail_is_finder_only_view` |
-| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings` |
+| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ | `test_accept_claim_updates_item_and_rejects_siblings`, `test_accept_unknown_claim_returns_not_found`, `test_accept_already_accepted_claim_returns_conflict` |
 
 The [exported OpenAPI contract](docs/openapi.json) is regenerated with
 `python3 scripts/export_openapi.py` and verified with `python3 -m pytest`.
