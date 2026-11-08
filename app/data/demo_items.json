@@ -1,0 +1,82 @@
+[
+  {
+    "id": 12,
+    "title": "Blue water bottle",
+    "category": "bottle",
+    "description": "Metal bottle with a sticker on the side.",
+    "location_found": "Building A, lecture hall 2",
+    "date_found": "2026-10-01",
+    "status": "open",
+    "finder_contact": "finder@example.com"
+  },
+  {
+    "id": 13,
+    "title": "Silver key ring",
+    "category": "keys",
+    "description": "Three silver keys on a round ring.",
+    "location_found": "Library entrance",
+    "date_found": "2026-09-18",
+    "status": "open",
+    "finder_contact": "keys@example.com"
+  },
+  {
+    "id": 14,
+    "title": "Green rain jacket",
+    "category": "clothing",
+    "description": "Lightweight green jacket with a hood.",
+    "location_found": "North campus bus stop",
+    "date_found": "2026-10-12",
+    "status": "open",
+    "finder_contact": "jacket@example.com"
+  },
+  {
+    "id": 15,
+    "title": "Black wireless earbuds",
+    "category": "electronics",
+    "description": "Earbuds in a black charging case.",
+    "location_found": "Building B, study room 4",
+    "date_found": "2026-10-20",
+    "status": "open",
+    "finder_contact": "earbuds@example.com"
+  },
+  {
+    "id": 16,
+    "title": "Student identification card",
+    "category": "id_card",
+    "description": "Student card in a transparent sleeve.",
+    "location_found": "Cafeteria",
+    "date_found": "2026-10-27",
+    "status": "returned",
+    "finder_contact": "idcard@example.com"
+  },
+  {
+    "id": 17,
+    "title": "Canvas tote bag",
+    "category": "bag",
+    "description": "Natural canvas bag with a blue logo.",
+    "location_found": "Main staircase",
+    "date_found": "2026-11-02",
+    "status": "open",
+    "finder_contact": "totebag@example.com"
+  },
+  {
+    "id": 18,
+    "title": "Red compact umbrella",
+    "category": "other",
+    "description": "Small red umbrella with a wooden handle.",
+    "location_found": "Building C reception",
+    "date_found": "2026-11-04",
+    "status": "open",
+    "finder_contact": "umbrella@example.com"
+  },
+  {
+    "id": 19,
+    "title": "Yellow sports bottle",
+    "category": "bottle",
+    "description": "Yellow plastic bottle with a black cap.",
+    "location_found": "Sports hall locker area",
+    "date_found": "2026-11-06",
+    "status": "open",
+    "finder_contact": "sports@example.com"
+  }
+]
