@@ -51,6 +51,51 @@ def test_list_filters_pagination_and_hides_returned_items(client):
     assert client.get("/items", params={"status": "expired"}).status_code == 422
 
 
+def test_list_pagination_is_deterministic_and_non_overlapping(client):
+    for title in ("First page item", "Second page item", "Third page item"):
+        client.post("/items", json={
+            "title": title,
+            "category": "bag",
+            "location_found": title,
+            "date_found": "2026-10-01",
+            "finder_contact": "finder@example.com",
+        })
+    first = client.get("/items", params={"status": "open", "limit": 2, "offset": 0}).json()
+    second = client.get("/items", params={"status": "open", "limit": 2, "offset": 2}).json()
+    first_ids = {item["id"] for item in first["items"]}
+    second_ids = {item["id"] for item in second["items"]}
+    assert first_ids.isdisjoint(second_ids)
+    assert first_ids | second_ids == {
+        item["id"] for item in client.get("/items", params={"status": "open"}).json()["items"]
+    }
+
+
+def test_search_matches_literal_wildcards(client):
+    for title, location in (("Percent % item", "Percent % location"), ("Underscore _ item", "Underscore _ location")):
+        client.post("/items", json={
+            "title": title,
+            "category": "bag",
+            "location_found": location,
+            "date_found": "2026-10-01",
+            "finder_contact": "finder@example.com",
+        })
+    assert client.get("/items", params={"q": "%"}).json()["count"] == 1
+    assert client.get("/items", params={"q": "_"}).json()["count"] == 1
+    assert client.get("/items", params={"location": "%"}).json()["count"] == 1
+    assert client.get("/items", params={"location": "_"}).json()["count"] == 1
+
+
+def test_item_input_length_limits(client):
+    payload = {
+        "title": "Long description",
+        "category": "bag",
+        "location_found": "Library",
+        "date_found": "2026-10-01",
+        "finder_contact": "finder@example.com",
+    }
+    assert client.post("/items", json={**payload, "description": "x" * 1001}).status_code == 422
+
+
 def test_get_item_and_status_transition_errors(client):
     missing = client.get("/items/999")
     assert missing.status_code == 404

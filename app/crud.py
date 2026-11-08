@@ -9,6 +9,10 @@ from app.models import Claim, ClaimStatus, Item, ItemStatus
 from app.schemas import ClaimCreate, Category, ItemCreate
 
 
+def _literal_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 class DomainError(Exception):
     """Base class for expected application rule failures."""
 
@@ -77,21 +81,27 @@ def list_items(
     filters = []
 
     if q:
-        pattern = f"%{q.lower()}%"
+        pattern = f"%{_literal_like(q.lower())}%"
         filters.append(
-            (func.lower(Item.title).like(pattern))
-            | (func.lower(Item.description).like(pattern))
+            (func.lower(Item.title).like(pattern, escape="\\"))
+            | (func.lower(Item.description).like(pattern, escape="\\"))
         )
     if category:
         filters.append(Item.category == category.value)
     if location:
-        filters.append(func.lower(Item.location_found).like(f"%{location.lower()}%"))
+        pattern = f"%{_literal_like(location.lower())}%"
+        filters.append(func.lower(Item.location_found).like(pattern, escape="\\"))
     if status:
         filters.append(Item.status == status.value)
     else:
         filters.append(Item.status.in_(DEFAULT_VISIBLE_STATUSES))
 
-    statement = statement.where(*filters).offset(offset).limit(limit)
+    statement = (
+        statement.where(*filters)
+        .order_by(Item.created_at.desc(), Item.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
     count_statement = count_statement.where(*filters)
     return list(session.exec(statement)), session.exec(count_statement).one()
 
@@ -125,8 +135,16 @@ def update_item_status(
     if new_status not in ALLOWED_TRANSITIONS[current_status]:
         raise InvalidStatusTransitionError(item_id, current_status.value, new_status.value)
 
-    item.status = new_status.value
-    session.add(item)
+    result = session.exec(
+        update(Item)
+        .where(Item.id == item_id, Item.status == current_status.value)
+        .values(status=new_status.value)
+    )
+    if result.rowcount != 1:
+        session.rollback()
+        raise InvalidStatusTransitionError(
+            item_id, current_status.value, new_status.value
+        )
     if current_status is ItemStatus.claimed and new_status is ItemStatus.open:
         session.exec(
             update(Claim)

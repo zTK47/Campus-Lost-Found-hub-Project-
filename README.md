@@ -153,14 +153,16 @@ deferred until authentication and moderation are designed.
   are required when reporting an item; `description` is optional.
 - `category` must be one of the seven values in `categories.json`.
 - `date_found` must not be in the future.
+- Item descriptions are limited to 1,000 characters.
 - Claim input requires `claimant_name`, `claimant_contact` and a non-empty
-  `proof_description`.
+  `proof_description` of at most 2,000 characters.
 - An item can receive a claim only while `open`.
 - Multiple claims are allowed while an item is `open`; the finder accepts one
   pending claim, atomically locking the item as `claimed` and rejecting
   remaining pending claims.
 - Item PATCH permits only `claimed` to `open` or `returned`; `open` to
   `claimed` occurs only when the finder accepts a pending claim.
+- Search text matches literal characters, and results are ordered newest first.
 - Returned items are hidden from the default list, but may be requested with
   an explicit status filter.
 - Reopening a claimed item retains its claim history and returns the item to
@@ -172,7 +174,7 @@ deferred until authentication and moderation are designed.
 | Operation | Input | Expected output | Possible errors |
 |---|---|---|---|
 | `POST /items` | Required title, category, location, date and finder contact; optional description | `201 Created` with an identifier and status `open`; finder contact omitted from response | `422` for missing/invalid fields |
-| `GET /items` | Optional `q`, `category`, `location`, `status`, `limit` and `offset` | `200 OK` with public items, count, limit and offset | `422` for invalid filters or pagination |
+| `GET /items` | Optional `q`, `category`, `location`, `status`, `limit` and `offset` | `200 OK` with public items ordered newest first, count, limit and offset | `422` for invalid filters or pagination |
 | `GET /items/{id}` | Integer item identifier | `200 OK` with public item details and claim count | `404` if absent; `422` for invalid identifier |
 | `PATCH /items/{id}` | `{"status":"open"}` or `{"status":"returned"}` | `200 OK` with updated public item | `404` if absent; `409` for an invalid transition; `422` if status is missing or malformed |
 
@@ -180,7 +182,7 @@ deferred until authentication and moderation are designed.
 
 | Operation | Input | Expected output | Possible errors |
 |---|---|---|---|
-| `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description | `201 Created`; pending claim and item remains `open` | `404` if item is absent; `409` if not open; `422` for invalid input |
+| `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description up to 2,000 characters | `201 Created`; pending claim and item remains `open` | `404` if item is absent; `409` if not open; `422` for invalid input |
 | `GET /items/{item_id}/claims` | Item id; currently no authentication | `200 OK` with claims including proof | `404` if item is absent; authorization is a future requirement |
 | `PATCH /items/{item_id}/claims/{claim_id}` | `{"status":"accepted"}` | `200 OK` with accepted claim; item becomes `claimed` and sibling claims are rejected | `404` if claim is absent or belongs to another item; `409` if the item is not open or the claim is not pending; `422` for invalid input |
 

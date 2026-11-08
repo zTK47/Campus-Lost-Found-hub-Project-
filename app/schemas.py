@@ -34,7 +34,7 @@ class ItemCreate(BaseModel):
 
     title: str = Field(min_length=1, max_length=100)
     category: Category
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=1000)
     location_found: str = Field(min_length=1, max_length=150)
     date_found: date
     finder_contact: EmailStr
@@ -131,7 +131,7 @@ class ClaimCreate(BaseModel):
 
     claimant_name: str = Field(min_length=1, max_length=100)
     claimant_contact: EmailStr
-    proof_description: str = Field(min_length=1)
+    proof_description: str = Field(min_length=1, max_length=2000)
 
 
 class ClaimPublic(BaseModel):

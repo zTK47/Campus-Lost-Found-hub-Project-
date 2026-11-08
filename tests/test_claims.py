@@ -16,6 +16,12 @@ def test_claim_invalid_input_rejected(client):
         "proof_description": "",
     })
     assert response.status_code == 422
+    response = client.post("/items/12/claims", json={
+        "claimant_name": "Alex Example",
+        "claimant_contact": "alex@example.com",
+        "proof_description": "x" * 2001,
+    })
+    assert response.status_code == 422
 
 
 def test_claim_open_item_succeeds(client):

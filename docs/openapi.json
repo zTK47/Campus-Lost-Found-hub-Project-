@@ -36,6 +36,7 @@
             "type": "string"
           },
           "proof_description": {
+            "maxLength": 2000,
             "minLength": 1,
             "title": "Proof Description",
             "type": "string"
@@ -207,6 +208,7 @@
           "description": {
             "anyOf": [
               {
+                "maxLength": 1000,
                 "type": "string"
               },
               {
