@@ -5,7 +5,7 @@ from typing import Final
 from sqlmodel import Session, func, select, update
 
 from app.config import DEFAULT_PAGE_SIZE, DEFAULT_VISIBLE_STATUSES
-from app.models import Claim, Item, ItemStatus
+from app.models import Claim, ClaimStatus, Item, ItemStatus
 from app.schemas import ClaimCreate, Category, ItemCreate
 
 
@@ -35,8 +35,18 @@ class ItemNotOpenError(DomainError):
         )
 
 
+class ClaimNotFoundError(DomainError):
+    def __init__(self, claim_id: int) -> None:
+        super().__init__(f"Claim {claim_id} not found")
+
+
+class ClaimNotPendingError(DomainError):
+    def __init__(self, claim_id: int, status: str) -> None:
+        super().__init__(f"Claim {claim_id} is already {status} and cannot be accepted.")
+
+
 ALLOWED_TRANSITIONS: Final[dict[ItemStatus, frozenset[ItemStatus]]] = {
-    ItemStatus.open: frozenset({ItemStatus.claimed, ItemStatus.returned}),
+    ItemStatus.open: frozenset({ItemStatus.returned}),
     ItemStatus.claimed: frozenset({ItemStatus.open, ItemStatus.returned}),
     ItemStatus.returned: frozenset(),
 }
@@ -118,28 +128,77 @@ def update_item_status(
 
     item.status = new_status.value
     session.add(item)
+    if current_status is ItemStatus.claimed and new_status is ItemStatus.open:
+        session.exec(
+            update(Claim)
+            .where(
+                Claim.item_id == item_id,
+                Claim.status == ClaimStatus.accepted.value,
+            )
+            .values(status=ClaimStatus.rejected.value)
+        )
     session.commit()
     session.refresh(item)
     return item
 
 
 def create_claim(session: Session, item_id: int, claim_data: ClaimCreate) -> Claim:
-    item = session.get(Item, item_id)
+    item = session.exec(
+        select(Item).where(Item.id == item_id).with_for_update()
+    ).first()
     if item is None:
         raise ItemNotFoundError(item_id)
+    if item.status != ItemStatus.open.value:
+        raise ItemNotOpenError(item_id, item.status)
 
-    result = session.exec(
+    claim = Claim(
+        item_id=item_id,
+        status=ClaimStatus.pending.value,
+        **claim_data.model_dump(),
+    )
+    session.add(claim)
+    session.commit()
+    session.refresh(claim)
+    return claim
+
+
+def accept_claim(session: Session, item_id: int, claim_id: int) -> Claim:
+    claim = session.exec(
+        select(Claim).where(Claim.id == claim_id, Claim.item_id == item_id)
+    ).first()
+    if claim is None:
+        raise ClaimNotFoundError(claim_id)
+
+    item_result = session.exec(
         update(Item)
         .where(Item.id == item_id, Item.status == ItemStatus.open.value)
         .values(status=ItemStatus.claimed.value)
     )
-    if result.rowcount != 1:
+    if item_result.rowcount != 1:
         session.rollback()
-        session.refresh(item)
-        raise ItemNotOpenError(item_id, item.status)
+        raise ItemNotOpenError(item_id, "claimed")
 
-    claim = Claim(item_id=item_id, **claim_data.model_dump())
-    session.add(claim)
+    claim_result = session.exec(
+        update(Claim)
+        .where(
+            Claim.id == claim_id,
+            Claim.item_id == item_id,
+            Claim.status == ClaimStatus.pending.value,
+        )
+        .values(status=ClaimStatus.accepted.value)
+    )
+    if claim_result.rowcount != 1:
+        session.rollback()
+        raise ClaimNotPendingError(claim_id, claim.status)
+
+    session.exec(
+        update(Claim)
+        .where(
+            Claim.item_id == item_id,
+            Claim.status == ClaimStatus.pending.value,
+        )
+        .values(status=ClaimStatus.rejected.value)
+    )
     session.commit()
     session.refresh(claim)
     return claim

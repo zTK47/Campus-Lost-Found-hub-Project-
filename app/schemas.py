@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.config import CATEGORY_VALUES
-from app.models import ItemStatus
+from app.models import ClaimStatus, ItemStatus
 
 
 Category = Enum(
@@ -83,6 +84,7 @@ class ClaimPublic(BaseModel):
     item_id: int
     claimant_name: str
     claimant_contact: EmailStr
+    status: str
     created_at: datetime
 
     @field_validator("created_at", mode="before")
@@ -93,6 +95,12 @@ class ClaimPublic(BaseModel):
 
 class ClaimFinder(ClaimPublic):
     proof_description: str
+
+
+class ClaimDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal[ClaimStatus.accepted]
 
 
 class ItemListResponse(BaseModel):

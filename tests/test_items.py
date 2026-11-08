@@ -63,11 +63,11 @@ def test_status_transitions_allow_reopen_and_return_once(client):
         "proof_description": "A hidden detail",
     })
     assert claim.status_code == 201
+    assert client.patch("/items/12", json={"status": "claimed"}).status_code == 409
+    assert client.patch(
+        f"/items/12/claims/{claim.json()['id']}", json={"status": "accepted"}
+    ).status_code == 200
     assert client.patch("/items/12", json={"status": "open"}).status_code == 200
-    assert client.post("/items/12/claims", json={
-        "claimant_name": "Second Claimant",
-        "claimant_contact": "second@example.com",
-        "proof_description": "Another hidden detail",
-    }).status_code == 201
+    assert client.get("/items/12/claims").json()[0]["status"] == "rejected"
     assert client.patch("/items/12", json={"status": "returned"}).status_code == 200
     assert client.patch("/items/12", json={"status": "open"}).status_code == 409

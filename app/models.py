@@ -11,6 +11,12 @@ class ItemStatus(str, Enum):
     returned = "returned"
 
 
+class ClaimStatus(str, Enum):
+    pending = "pending"
+    accepted = "accepted"
+    rejected = "rejected"
+
+
 class Item(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str = Field(sa_column=Column(String(100), nullable=False))
@@ -43,6 +49,10 @@ class Claim(SQLModel, table=True):
     claimant_name: str = Field(sa_column=Column(String(100), nullable=False))
     claimant_contact: str = Field(sa_column=Column(String(120), nullable=False))
     proof_description: str = Field(sa_column=Column(Text, nullable=False))
+    status: str = Field(
+        default=ClaimStatus.pending.value,
+        sa_column=Column(String(20), nullable=False, index=True),
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), nullable=False),

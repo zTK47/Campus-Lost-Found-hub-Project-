@@ -19,9 +19,11 @@ CREATE TABLE claim (
     claimant_name VARCHAR(100) NOT NULL,
     claimant_contact VARCHAR(120) NOT NULL,
     proof_description TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     INDEX ix_claim_item_id (item_id),
+    INDEX ix_claim_status (status),
     CONSTRAINT fk_claim_item
         FOREIGN KEY (item_id) REFERENCES item (id)
         ON DELETE CASCADE

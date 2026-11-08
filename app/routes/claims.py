@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.database import get_session
-from app.schemas import ClaimCreate, ClaimFinder, ClaimPublic
+from app.schemas import ClaimCreate, ClaimDecision, ClaimFinder, ClaimPublic
 
 
 router = APIRouter(tags=["claims"])
@@ -30,3 +30,17 @@ def list_claims(
 ) -> list[ClaimFinder]:
     # TODO: require finder/admin authorization before exposing claimant contact and proof beyond the course demo.
     return crud.list_claims_for_item(session, item_id)
+
+
+@router.patch(
+    "/items/{item_id}/claims/{claim_id}",
+    response_model=ClaimPublic,
+)
+def accept_claim(
+    item_id: PositiveItemId,
+    claim_id: Annotated[int, Path(ge=1)],
+    decision: ClaimDecision,
+    session: Session = Depends(get_session),
+) -> ClaimPublic:
+    # TODO: require finder/admin authorization before accepting claims.
+    return crud.accept_claim(session, item_id, claim_id)

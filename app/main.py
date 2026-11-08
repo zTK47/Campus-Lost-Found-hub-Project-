@@ -23,7 +23,7 @@ async def lifespan(_: FastAPI):
 
 def _domain_error_response(_: Request, error: crud.DomainError) -> JSONResponse:
     status_code = 409
-    if isinstance(error, crud.ItemNotFoundError):
+    if isinstance(error, (crud.ItemNotFoundError, crud.ClaimNotFoundError)):
         status_code = 404
     return JSONResponse(status_code=status_code, content={"detail": str(error)})
 

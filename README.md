@@ -62,15 +62,14 @@ returned, and the item leaving the default search results.
 |---|---|---|---|---|
 | 1 | Finder | Reports a found item | Title, category, optional description, place, date, contact | Item is created as `open`; a reference is returned |
 | 2 | Seeker | Browses or searches items | Keyword, category, location and optional status | Matching public items and a result count |
-| 3 | Seeker | Opens an item and submits a claim | Name, contact, hidden proof detail | Claim is created; item becomes `claimed` |
-| 4 | Finder | Reviews the claims | Claimant name, contact and proof | Finder decides whether to arrange handover |
+| 3 | Seeker | Opens an item and submits a claim | Name, contact, hidden proof detail | Pending claim is created; item remains `open` |
+| 4 | Finder | Reviews the claims and accepts one | Claimant name, contact and proof | Accepted claim changes the item to `claimed`; siblings are rejected |
 | 5 | Finder | Completes handover or reopens the item | Item reference | Status becomes `returned`, or returns to `open` |
 
-Only one claim can lock an item at a time. A simultaneous or later claim
-receives `409 Conflict`; claims are not queued. Claims are retained as
-historical records. Reopening a claimed item is represented by
-`PATCH /items/{id}` with `{"status":"open"}`; no separate claim-rejection
-endpoint exists in this milestone.
+Multiple pending claims may exist while an item is `open`. The finder accepts
+one claim; that claim changes the item to `claimed` and all remaining pending
+claims are rejected. Reopening a claimed item is represented by
+`PATCH /items/{id}` with `{"status":"open"}` and rejects its accepted claim.
 
 **Out of initial scope:** login, campus accounts, payments, rewards, chat,
 automatic matching, notifications, photo upload, lost-item posts, deletion,
@@ -90,7 +89,7 @@ current design uses these screens:
 | Found items list | Search text, category, location, status | Search, filter, open item | Result count or no-results message | `GET /items` |
 | Report found item | Title, category, optional description, location, date, contact | Submit | Reference, `open` status, validation errors | `POST /items` |
 | Public item detail | Item reference | View, submit claim | Public details, claim form, claimed/returned notice | `GET /items/{id}`, `POST /items/{id}/claims` |
-| Finder claim review | Item reference | Review claims and reopen or return the item | Claim list and updated item status | `GET /items/{id}/claims`, `PATCH /items/{id}` |
+| Finder claim review | Item reference | Review and accept a claim, then reopen or return the item | Claim list and updated item status | `GET /items/{id}/claims`, `PATCH /items/{id}/claims/{claim_id}`, `PATCH /items/{id}` |
 | Finder item management | Item reference | Mark returned | `returned` status and hidden default listing | `PATCH /items/{id}` |
 
 A polished or clickable prototype is not required for this milestone.
@@ -102,8 +101,8 @@ The domain has two records:
 - An **Item** is a found object with one current status and zero or more
   historical claims.
 - A **Claim** is a seeker's ownership assertion and belongs to one item.
-  Claims are retained as historical records; the current model has no
-  separate claim status.
+  Claims are retained as historical records with `pending`, `accepted`, or
+  `rejected` status.
 
 The category list is fixed because category filtering is part of the core
 workflow. The canonical list is stored in
@@ -119,17 +118,19 @@ when reporting an item but is never returned publicly.
 
 | Current state | Next state | Trigger | Actor |
 |---|---|---|---|
-| `open` | `claimed` | A valid claim is accepted atomically | System after seeker submits |
+| `open` | `claimed` | Finder accepts a pending claim atomically | Finder |
 | `claimed` | `open` | Finder reopens the item after reviewing the claim | Finder |
 | `claimed` | `returned` | Handover is complete | Finder |
 | `returned` | — | Terminal state | — |
 
 #### Claim records
 
-A claim is created when an item changes from `open` to `claimed` and is
-retained after the item is reopened or returned. The current API does not
-assign claim statuses, delete claims, or provide a separate rejection
-operation. The finder claim list is the finder-only view of these records.
+A claim is created as `pending` while its item is `open`. The finder accepts
+one pending claim, which becomes `accepted` while sibling pending claims
+become `rejected`. Reopening an item rejects its accepted claim. Claims are
+retained as historical records.
+![Finder claim review with pending claims](assets/claims-review-pending.png)
+![Reopening rejects the accepted claim](assets/reopen-rejects-accepted.png)
 
 #### Privacy boundary
 
@@ -155,8 +156,9 @@ deferred until authentication and moderation are designed.
 - Claim input requires `claimant_name`, `claimant_contact` and a non-empty
   `proof_description`.
 - An item can receive a claim only while `open`.
-- The first successful claim atomically locks the item as `claimed`; another
-  claim receives `409 Conflict`.
+- Multiple claims are allowed while an item is `open`; the finder accepts one
+  pending claim, atomically locking the item as `claimed` and rejecting
+  remaining pending claims.
 - Returned items are hidden from the default list, but may be requested with
   an explicit status filter.
 - Reopening a claimed item retains its claim history and returns the item to
@@ -176,8 +178,9 @@ deferred until authentication and moderation are designed.
 
 | Operation | Input | Expected output | Possible errors |
 |---|---|---|---|
-| `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description | `201 Created`; one claim and item status `claimed` | `404` if item is absent; `409` if not open; `422` for invalid input |
+| `POST /items/{item_id}/claims` | Item id, claimant name, contact and proof description | `201 Created`; pending claim and item remains `open` | `404` if item is absent; `409` if not open; `422` for invalid input |
 | `GET /items/{item_id}/claims` | Item id; currently no authentication | `200 OK` with claims including proof | `404` if item is absent; authorization is a future requirement |
+| `PATCH /items/{item_id}/claims/{claim_id}` | `{"status":"accepted"}` | `200 OK` with accepted claim; item becomes `claimed` and sibling claims are rejected | `404` if claim is absent or belongs to another item; `409` if item is not open or claim is not pending; `422` for invalid input |
 
 The finder-only endpoint currently has no authentication and must not be used
 beyond the course demo until finder/admin authorization is added.
@@ -196,8 +199,8 @@ No external API integration is planned for this milestone.
 ### Operation: Claim a found item
 
 - **User goal:** A seeker claims an item they believe is theirs.
-- **Record affected:** A claim is created and the related item
-  changes from `open` to `claimed`.
+- **Record affected:** A pending claim is created; the item remains `open`
+  until the finder accepts a claim.
 
 **Request:** `POST /items/{item_id}/claims`
 
@@ -217,6 +220,7 @@ No external API integration is planned for this milestone.
   "claimant_contact": "alex@example.com",
   "id": 1,
   "item_id": 12,
+  "status": "pending",
   "created_at": "2026-10-22T15:42:19.295721"
 }
 ```
@@ -232,22 +236,44 @@ The proof is accepted as input but is omitted from this public response.
 }
 ```
 
-![409 Conflict response](assets/claim-conflict-409.png)
+### Operation: Accept a claim
 
-**Failure response — 422 Unprocessable Entity** (invalid input)
+**Request:** `PATCH /items/{item_id}/claims/{claim_id}`
 
-An empty `proof_description` is rejected before claim creation. The item
-remains `open`:
+```json
+{"status": "accepted"}
+```
+
+**Success response — 200 OK**
+
+The selected claim is returned with `"status": "accepted"`; other pending
+claims for the item become `"rejected"`.
+![200 Accepted claim response](assets/accept-success-200.png)
+
+**Failure response — 409 Conflict** (item is not `open` or claim is not pending)
 
 ```json
 {
-  "claimant_name": "Alex Example",
-  "claimant_contact": "alex@example.com",
-  "proof_description": ""
+  "detail": "Item 12 is already claimed and cannot accept new claims."
 }
 ```
 
+![409 Conflict response](assets/claim-conflict-409.png)
+![409 Claim acceptance conflict](assets/accept-conflict-409.png)
+
+**Failure response — 422 Unprocessable Entity** (invalid decision)
+
+Only `{"status":"accepted"}` is valid:
+
+```json
+{"status": "rejected"}
+```
+
 ![422 validation error response](assets/claim-validation-422.svg)
+![422 invalid claim decision](assets/accept-validation-422.png)
+
+An absent claim, or a claim belonging to another item, returns `404 Not Found`:
+![404 claim not found](assets/accept-not-found-404.png)
 
 This case is covered by `test_claim_invalid_input_rejected` in
 `tests/test_claims.py`.
@@ -258,7 +284,7 @@ This case is covered by `test_claim_invalid_input_rejected` in
 |---|---|---|
 | API routes | Parse requests, call application functions and return response models | `app/routes/` |
 | API schemas | Required fields, categories, emails, dates and privacy-safe responses | `app/schemas.py` |
-| Business rules | State transitions, one-claim lock and typed domain errors | `app/crud.py` |
+| Business rules | State transitions, finder-driven claim acceptance and typed domain errors | `app/crud.py` |
 | Error mapping | Convert domain errors to JSON HTTP errors in one place | `app/main.py` |
 | Persistence | SQLModel engine, sessions, tables and sample-data setup | `app/database.py`, `app/models.py` |
 
@@ -272,10 +298,11 @@ This case is covered by `test_claim_invalid_input_rejected` in
 | Mark item as returned | `PATCH /items/{id}` | ✅ | ✅ | ✅ |
 | Claim an item | `POST /items/{id}/claims` | ✅ | ✅ | ✅ |
 | Review claims | `GET /items/{id}/claims` | ✅ | ✅ | ✅ |
+| Accept a claim | `PATCH /items/{id}/claims/{claim_id}` | ✅ | ✅ | ✅ |
 
 The implemented operations are available through FastAPI's interactive docs
 and are covered by the SQLite tests. An optional MySQL suite covers the core
-scenarios and concurrent duplicate claims.
+scenarios and concurrent claim acceptance.
 
 ## 3. Project management
 

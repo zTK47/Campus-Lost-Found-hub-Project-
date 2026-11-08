@@ -85,18 +85,23 @@ def test_mysql_core_item_and_claim_scenarios(client):
     assert created.status_code == 201
     assert client.get("/items", params={"category": "bag"}).status_code == 200
     assert client.post("/items/12/claims", json=claim_payload()).status_code == 201
-    assert client.post("/items/12/claims", json=claim_payload("Second Claimant")).status_code == 409
+    assert client.post("/items/12/claims", json=claim_payload("Second Claimant")).status_code == 201
     assert client.patch("/items/12", json={"status": "returned"}).status_code == 200
 
 
-def test_mysql_concurrent_duplicate_claim(client):
-    def submit_claim(index):
+def test_mysql_concurrent_claim_acceptance(client):
+    claims = [
+        client.post("/items/12/claims", json=claim_payload(f"Claimant {index}")).json()
+        for index in (1, 2)
+    ]
+
+    def accept_claim(claim):
         with TestClient(app) as concurrent_client:
-            return concurrent_client.post(
-                "/items/12/claims",
-                json=claim_payload(f"Claimant {index}"),
+            return concurrent_client.patch(
+                f"/items/12/claims/{claim['id']}",
+                json={"status": "accepted"},
             ).status_code
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        statuses = list(executor.map(submit_claim, (1, 2)))
-    assert sorted(statuses) == [201, 409]
+        statuses = list(executor.map(accept_claim, claims))
+    assert sorted(statuses) == [200, 409]
