@@ -1,8 +1,6 @@
 # Campus Lost & Found Hub
 
-**Current stage:** Milestone 2 — contract and first implementation. This
-README is the single living design document; we do not start a separate
-document for each milestone.
+**Current stage:** Milestone 2 — contract and first implementation.
 
 The project uses the workflow, sketch and sample-data approach from the class
 exercises, adapted to a campus lost-and-found service. Decisions made here are
