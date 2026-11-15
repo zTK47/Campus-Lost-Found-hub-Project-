@@ -1,6 +1,7 @@
 # Campus Lost & Found Hub
 
-**Current stage:** Milestone 2 — contract and first implementation.
+**Current stage:** Milestone 3 — integration. Milestones 1 (design) and 2
+(backend) are complete; the web interface is connected to the API (section 3b).
 
 The project uses the workflow, sketch and sample-data approach from the class
 exercises, adapted to a campus lost-and-found service. Decisions made here are
@@ -69,9 +70,18 @@ one claim; that claim changes the item to `claimed` and all remaining pending
 claims are rejected. Reopening a claimed item is represented by
 `PATCH /items/{id}` with `{"status":"open"}` and rejects its accepted claim.
 
-**Out of initial scope:** login, campus accounts, payments, rewards, chat,
-automatic matching, notifications, photo upload, lost-item posts, deletion,
-moderation and automatic expiration.
+**Planned for later milestones** (required by the project guidelines for the
+final submission: CRUD on the core entity and login with access checks):
+
+- As a **finder**, I want to log in, so that only I can review the claims for
+  my items and change their status.
+- As a **finder**, I want to edit or delete my own post while it is still
+  `open`, so that the information stays correct.
+- As an **admin**, I want to remove expired or stalled items, so that the list
+  stays up to date.
+
+**Out of scope:** payments, rewards, chat, automatic matching, notifications,
+photo upload, lost-item posts, moderation tools and automatic expiration.
 
 ## 2. Design
 
@@ -115,7 +125,7 @@ when reporting an item but is never returned publicly.
 #### Item state machine
 
 | Current state | Next state | Trigger | Actor |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | `open` | `claimed` | Finder accepts a pending claim atomically | Finder |
 | `claimed` | `open` | Finder reopens the item after reviewing the claim | Finder |
 | `claimed` | `returned` | Handover is complete | Finder |
@@ -435,8 +445,8 @@ their status codes, so the demo shows which request each action sends.
 - There is no login yet. Anyone with a reference number can open the finder
   area. The operations to protect are `GET /items/{id}/claims`,
   `PATCH /items/{id}/claims/{claim_id}` and `PATCH /items/{id}`.
-- At startup only the sample item 12 is created. Loading the demo items in
-  `app/data/demo_items.json` is the next step.
+- With `DEBUG` and `SEED_SAMPLE_DATA` set to `true`, the 8 demo items in
+  `app/data/demo_items.json` are loaded into an empty database for the demo.
 - The API has no operation to reject a single claim, so the finder area has no
   reject button (see Known limitations).
 
@@ -452,11 +462,26 @@ their status codes, so the demo shows which request each action sends.
 | Should automatic item expiry be supported? | Explicitly deferred to a later milestone | Revisit after the current workflow / Team |
 | Should seekers post lost items? | Out of scope for now | Revisit after this workflow / Team |
 | Should photos be supported? | Out of scope for now | Revisit after the first workflow / Team |
+| Can the finder reject a single claim? | Not yet: accepting one claim rejects the other pending claims, and reopening an item rejects its accepted claim. An explicit reject operation was proposed after the backend coaching | Decide with Ilir whether to add it; then focus on the web interface / Davide, Ilir |
+| Which frontend approach? | Proposal: HTML, CSS and JavaScript pages that call the REST API (section 3b); Jinja2 templates are the alternative | Confirm at the integration coaching / Team |
 
 ### Coaching notes
 
-To be completed after the next coaching session on a date to be agreed by the
-team; no coaching feedback has been recorded in this milestone.
+**Milestone 2 — backend coaching (26 October 2026)**
+
+| Feedback from the coach | Status | Where |
+|---|---|---|
+| Extend `claims.py` for the backend | Done: claims are `pending` until the finder accepts one; the others are rejected. Rejecting a single claim is still open (see Decisions) | `app/routes/claims.py`, `app/crud.py` |
+| Generate a JSON file to connect the data layer (`db.py`) | Done differently: the in-memory `db.py` became a SQLite/MySQL database with SQLModel, and the demo items are loaded from a JSON file | `app/database.py`, `app/data/demo_items.json` |
+| Extend the service layer | Done: business rules and domain errors live in one place, used by the API and, through the API, by the web interface | `app/crud.py` |
+| Implement operations other than `POST` | Partly done: `GET` and `PATCH` for items and claims exist; editing and deleting items are planned | `app/routes/items.py` |
+| Implement more user stories and details | In progress: planned user stories, state machine, privacy boundary and web interface documentation added | Sections 1, 2 and 3b |
+
+After the coaching the team agreed to discuss claim acceptance and rejection
+first and then to focus on the user interface for Milestone 3.
+
+**Milestone 3 — integration coaching:** to be recorded after the coaching,
+including the operations that need access protection.
 
 ### Contributions
 
@@ -465,7 +490,7 @@ team; no coaching feedback has been recorded in this milestone.
 | Fernando | User roles and found-item/reclaim workflow |
 | Bernardo | Screen sketches and interaction flow |
 | Ilir | FastAPI item and claim endpoints, Pydantic request/response schemas, typed CRUD and domain errors, atomic claim handling, SQLModel persistence, SQLite/MySQL configuration, focused tests and database schema documentation |
-| Davide | README structure, decisions and milestone coordination |
+| Davide | README structure, decisions, coaching notes and milestone coordination; invalid-input (422) test and example, first draft of the item operation contracts, example JSON files and `.gitignore` (Milestone 2); demo data file `app/data/demo_items.json` and its loading at startup; web interface (`app/static`, `app/routes/pages.py`) and its documentation (Milestone 3) |
 
 ### Questions for the lecturer
 
@@ -474,6 +499,10 @@ team; no coaching feedback has been recorded in this milestone.
 2. Is the planned finder authorization boundary sufficient for the next
    milestone?
 3. Should special handling for `id_card` items be reviewed with campus staff?
+4. Is a static HTML/JavaScript frontend that calls the REST API a suitable
+   approach, or do you prefer server-rendered Jinja2 templates?
+5. Should the finder be able to reject a single claim explicitly, or is
+   "accept one, reject the others" enough for the core workflow?
 
 ## Getting started
 
@@ -516,8 +545,12 @@ The raw MySQL schema is documented in [`docs/schema.sql`](docs/schema.sql).
 Tests run against SQLite by default. Set `TEST_MYSQL_URL` to run
 `tests/test_mysql.py` against MySQL.
 
-Sample data is seeded only when both `DEBUG` and `SEED_SAMPLE_DATA` are true,
-and only when the item table is empty. `init_db()` uses `create_all()` for
+Demo data is loaded only when both `DEBUG` and `SEED_SAMPLE_DATA` are true,
+and only when the item table is empty: the 8 items in
+`app/data/demo_items.json`, including item 12 used in the examples. Start the
+app with demo data with `DEBUG=true SEED_SAMPLE_DATA=true uvicorn app.main:app --reload`
+(Windows PowerShell: `$env:DEBUG="true"; $env:SEED_SAMPLE_DATA="true"; uvicorn app.main:app --reload`).
+The tests use only item 12 (`seed_sample_data()`). `init_db()` uses `create_all()` for
 this course project; Alembic migrations are the production-grade follow-up
 for schema evolution.
 
@@ -527,7 +560,8 @@ for schema evolution.
 |---|---|---|
 | 1 — Design draft | Analysis, workflow, sketches and example JSON | Complete |
 | 2 — Contract and first implementation | API contract, item and claim operations, validation and tests | Complete for the listed implemented endpoints |
-| Integration — later | Authentication, finder authorization and a connected workflow | Plan after the next coaching session |
+| 3 — Integration | Web interface connected to the API, one user journey from search to handover, architecture and open points (section 3b) | In progress: demo at the integration coaching |
+| 4 — Submission readiness | Login and access checks, editing and deleting items, final documentation and recorded presentation | Planned |
 
 The complete milestones, dates and assessment criteria are in the Moodle
 assignment. This README records the team's decisions and design evidence;
