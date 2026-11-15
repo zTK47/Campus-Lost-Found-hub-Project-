@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Generator
 from datetime import date
+from pathlib import Path
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import database_url
 from app.models import Item, ItemStatus
+
+DEMO_ITEMS_PATH = Path(__file__).resolve().parent / "data" / "demo_items.json"
 
 DATABASE_URL = database_url()
 engine = create_engine(
@@ -41,4 +45,18 @@ def seed_sample_data(session: Session) -> None:
             finder_contact="finder@example.com",
         )
     )
+    session.commit()
+
+
+def seed_demo_data(session: Session, path: Path = DEMO_ITEMS_PATH) -> None:
+    """Load the demo items from a JSON file into an empty database.
+
+    Used when the app starts with DEBUG and SEED_SAMPLE_DATA enabled. The tests
+    keep using seed_sample_data(), which creates only item 12.
+    """
+    if session.exec(select(Item)).first() is not None:
+        return
+    for entry in json.loads(path.read_text(encoding="utf-8")):
+        # SQLModel table models do not validate input, so the date is converted here.
+        session.add(Item(**{**entry, "date_found": date.fromisoformat(entry["date_found"])}))
     session.commit()

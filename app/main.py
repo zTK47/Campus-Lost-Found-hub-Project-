@@ -9,7 +9,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.config import SEED_SAMPLE_DATA
-from app.database import engine, init_db, seed_sample_data
+from app.database import engine, init_db, seed_demo_data
 from app.routes import claims, items, pages
 
 
@@ -18,7 +18,7 @@ async def lifespan(_: FastAPI):
     init_db()
     if SEED_SAMPLE_DATA:
         with Session(engine) as session:
-            seed_sample_data(session)
+            seed_demo_data(session)
     yield
 
 
