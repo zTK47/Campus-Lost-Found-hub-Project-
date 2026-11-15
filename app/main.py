@@ -11,6 +11,8 @@ from app.config import SEED_SAMPLE_DATA
 from app.database import engine, init_db, seed_sample_data
 from app.routes import claims, items
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -37,3 +39,6 @@ app = FastAPI(
 app.add_exception_handler(crud.DomainError, _domain_error_response)
 app.include_router(items.router)
 app.include_router(claims.router)
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+app.mount("/app", StaticFiles(directory=STATIC_DIR, html=True), name="frontend")

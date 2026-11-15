@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus Lost & Found</title>
+<style>
+  :root {
+    --navy: #1f3347; --yellow: #ffe600; --paper: #f4f6f9; --white: #fff;
+    --ink: #1c2733; --muted: #5d6b79; --line: #d5dce4;
+    --ok: #1f7a5a; --err: #b3261e; --err-bg: #fbeceb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.5 "Segoe UI", system-ui, Arial, sans-serif; }
+  header { background: var(--yellow); border-bottom: 4px solid var(--navy); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+  header .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+    justify-content: space-between; padding-top: 22px; padding-bottom: 22px; }
+  h1 { margin: 0; font-size: 1.9rem; letter-spacing: -.02em; color: var(--navy); }
+  header p { margin: 2px 0 0; color: var(--navy); }
+  button { font: inherit; cursor: pointer; border-radius: 6px; padding: 9px 16px;
+    border: 2px solid var(--navy); background: var(--white); color: var(--navy); font-weight: 600; }
+  button.primary { background: var(--navy); color: var(--white); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  :focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+  main { padding: 24px 0 56px; }
+  .filters { display: grid; grid-template-columns: 2fr 1fr 1.4fr 1fr; gap: 12px; margin-bottom: 8px; }
+  label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+  input, select, textarea { width: 100%; font: inherit; padding: 9px 10px; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px; background: var(--white); }
+  textarea { min-height: 90px; resize: vertical; }
+  .count { color: var(--muted); margin: 16px 0 10px; }
+  ul.items { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  li.item { background: var(--white); border: 1px solid var(--line); border-left: 6px solid var(--navy);
+    border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; }
+  li.item.claimed { border-left-color: var(--muted); }
+  li.item.returned { border-left-color: var(--ok); }
+  .item h2 { margin: 0; font-size: 1.1rem; }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .desc { grid-column: 1; margin: 2px 0 0; }
+  .side { grid-row: 1 / span 3; grid-column: 2; display: flex; flex-direction: column;
+    align-items: flex-end; gap: 8px; justify-content: space-between; }
+  .pill { font-size: .8rem; font-weight: 700; padding: 2px 10px; border-radius: 99px;
+    background: var(--yellow); color: var(--navy); }
+  .claimed .pill { background: var(--line); }
+  .returned .pill { background: #d6efe5; color: var(--ok); }
+  .pager { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+  .empty { background: var(--white); border: 1px dashed var(--line); border-radius: 6px;
+    padding: 28px; text-align: center; color: var(--muted); }
+  #status { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: 90vw;
+    padding: 10px 18px; border-radius: 6px; background: var(--navy); color: var(--white); display: none; }
+  #status.show { display: block; }
+  #status.error { background: var(--err); }
+  dialog { border: 0; border-radius: 10px; padding: 0; width: min(520px, 92vw); }
+  dialog::backdrop { background: rgba(31,51,71,.55); }
+  dialog form { padding: 22px; display: grid; gap: 12px; }
+  dialog h2 { margin: 0; color: var(--navy); }
+  .form-error { background: var(--err-bg); color: var(--err); padding: 8px 12px; border-radius: 6px; display: none; }
+  .form-error.show { display: block; }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+  @media (max-width: 767px) {
+    .filters { grid-template-columns: 1fr; }
+    li.item { grid-template-columns: 1fr; }
+    .side { grid-row: auto; grid-column: 1; flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>Campus Lost &amp; Found</h1>
+      <p>Lost something? Search what people have handed in.</p>
+    </div>
+    <button type="button" id="reportBtn" class="primary">Report a found item</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <form id="filters" class="filters" role="search">
+    <div><label for="q">Search</label><input id="q" type="search" placeholder="e.g. bottle, keys"></div>
+    <div><label for="category">Category</label>
+      <select id="category"><option value="">All</option></select></div>
+    <div><label for="location">Location</label><input id="location" type="search" placeholder="e.g. library"></div>
+    <div><label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="">Open and claimed</option>
+        <option value="open">Open</option>
+        <option value="claimed">Claimed</option>
+        <option value="returned">Returned</option>
+      </select></div>
+  </form>
+
+  <p class="count" id="count" role="status"></p>
+  <ul class="items" id="items"></ul>
+  <div class="pager">
+    <button type="button" id="prev">Previous</button>
+    <span id="pageInfo"></span>
+    <button type="button" id="next">Next</button>
+  </div>
+</main>
+
+<dialog id="claimDlg">
+  <form id="claimForm" method="dialog">
+    <h2>Claim: <span id="claimTitle"></span></h2>
+    <p class="meta">Describe something only the owner would know. The finder reviews your answer.</p>
+    <div class="form-error" id="claimError" role="alert"></div>
+    <div><label for="claimantName">Your name</label><input id="claimantName" required maxlength="100"></div>
+    <div><label for="claimantContact">Your email</label><input id="claimantContact" type="email" required maxlength="120"></div>
+    <div><label for="proof">How can you prove it is yours?</label>
+      <textarea id="proof" required maxlength="2000"></textarea></div>
+    <div class="actions">
+      <button type="button" data-close>Cancel</button>
+      <button type="submit" class="primary" id="claimSubmit">Send claim</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="reportDlg">
+  <form id="reportForm" method="dialog">
+    <h2>Report a found item</h2>
+    <div class="form-error" id="reportError" role="alert"></div>
+    <div><label for="title">Title</label><input id="title" required maxlength="100"></div>
+    <div><label for="newCategory">Category</label><select id="newCategory" required></select></div>
+    <div><label for="newDescription">Description (optional)</label>
+      <textarea id="newDescription" maxlength="1000"></textarea></div>
+    <div><label for="newLocation">Where did you find it?</label><input id="newLocation" required maxlength="150"></div>
+    <div><label for="dateFound">Date found</label><input id="dateFound" type="date" required></div>
+    <div><label for="finderContact">Your email (not shown publicly)</label>
+      <input id="finderContact" type="email" required maxlength="120"></div>
+    <div class="actions">
+      <button type="button" data-close>Cancel</button>
+      <button type="submit" class="primary" id="reportSubmit">Report item</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="status" role="status" aria-live="polite"></div>
+
+<script>
+  const CATEGORIES = ["bottle", "keys", "clothing", "electronics", "id_card", "bag", "other"];
+  const PAGE_SIZE = 10;
+  const $ = (id) => document.getElementById(id);
+  const state = { offset: 0, total: 0, claimItem: null };
+
+  const label = (c) => c.replace("_", " ").replace(/^./, (m) => m.toUpperCase());
+
+  // Turn any API error (string detail or FastAPI 422 list) into one readable message.
+  function errorText(body, status) {
+    const d = body && body.detail;
+    if (typeof d === "string") return d;
+    if (Array.isArray(d)) return d.map((e) => `${e.loc[e.loc.length - 1]}: ${e.msg}`).join("; ");
+    return `Request failed (${status}).`;
+  }
+
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      headers: { "Content-Type": "application/json" }, ...options,
+    });
+    let body = null;
+    try { body = await response.json(); } catch (_) { /* empty body */ }
+    if (!response.ok) throw new Error(errorText(body, response.status));
+    return body;
+  }
+
+  let statusTimer;
+  function toast(message, isError = false) {
+    const el = $("status");
+    el.textContent = message;
+    el.className = "show" + (isError ? " error" : "");
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => (el.className = ""), 4500);
+  }
+
+  function showFormError(id, message) {
+    const el = $(id);
+    el.textContent = message;
+    el.classList.toggle("show", Boolean(message));
+  }
+
+  function filterParams() {
+    const p = new URLSearchParams({ limit: PAGE_SIZE, offset: state.offset });
+    if ($("q").value.trim()) p.set("q", $("q").value.trim());
+    if ($("category").value) p.set("category", $("category").value);
+    if ($("location").value.trim()) p.set("location", $("location").value.trim());
+    if ($("statusFilter").value) p.set("status", $("statusFilter").value);
+    return p;
+  }
+
+  function itemNode(item) {
+    const li = document.createElement("li");
+    li.className = `item ${item.status}`;
+
+    const h = document.createElement("h2");
+    h.textContent = item.title;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `${label(item.category)} · ${item.location_found} · found ${item.date_found}`;
+    li.append(h, meta);
+
+    if (item.description) {
+      const p = document.createElement("p");
+      p.className = "desc";
+      p.textContent = item.description;
+      li.append(p);
+    }
+
+    const side = document.createElement("div");
+    side.className = "side";
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.textContent = label(item.status);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "This is mine";
+    btn.disabled = item.status !== "open";
+    btn.addEventListener("click", () => openClaim(item));
+    side.append(pill, btn);
+    li.append(side);
+    return li;
+  }
+
+  async function loadItems() {
+    try {
+      const data = await api(`/items?${filterParams()}`);
+      state.total = data.count;
+      const list = $("items");
+      list.replaceChildren();
+      if (data.items.length === 0) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "No items match. Try fewer filters, or check back later.";
+        list.append(li);
+      } else {
+        list.append(...data.items.map(itemNode));
+      }
+      $("count").textContent = `${data.count} item${data.count === 1 ? "" : "s"} found`;
+      const pages = Math.max(1, Math.ceil(data.count / PAGE_SIZE));
+      $("pageInfo").textContent = `Page ${Math.floor(state.offset / PAGE_SIZE) + 1} of ${pages}`;
+      $("prev").disabled = state.offset === 0;
+      $("next").disabled = state.offset + PAGE_SIZE >= data.count;
+    } catch (error) {
+      toast(`Could not load items. ${error.message}`, true);
+    }
+  }
+
+  function openClaim(item) {
+    state.claimItem = item;
+    $("claimTitle").textContent = item.title;
+    $("claimForm").reset();
+    showFormError("claimError", "");
+    $("claimDlg").showModal();
+  }
+
+  $("claimForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const btn = $("claimSubmit");
+    btn.disabled = true;
+    showFormError("claimError", "");
+    try {
+      const claim = await api(`/items/${state.claimItem.id}/claims`, {
+        method: "POST",
+        body: JSON.stringify({
+          claimant_name: $("claimantName").value.trim(),
+          claimant_contact: $("claimantContact").value.trim(),
+          proof_description: $("proof").value.trim(),
+        }),
+      });
+      $("claimDlg").close();
+      toast(`Claim ${claim.id} sent. Status: ${claim.status}.`);
+      loadItems();
+    } catch (error) {
+      // 404/409/422 from the API are shown as-is; no invented success.
+      showFormError("claimError", error.message);
+      loadItems();
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("reportForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const btn = $("reportSubmit");
+    btn.disabled = true;
+    showFormError("reportError", "");
+    try {
+      const item = await api("/items", {
+        method: "POST",
+        body: JSON.stringify({
+          title: $("title").value.trim(),
+          category: $("newCategory").value,
+          description: $("newDescription").value.trim() || null,
+          location_found: $("newLocation").value.trim(),
+          date_found: $("dateFound").value,
+          finder_contact: $("finderContact").value.trim(),
+        }),
+      });
+      $("reportDlg").close();
+      toast(`Item ${item.id} reported. Thank you!`);
+      state.offset = 0;
+      loadItems();
+    } catch (error) {
+      showFormError("reportError", error.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Filters: reset to page 1 and reload.
+  let debounce;
+  function refilter() { state.offset = 0; loadItems(); }
+  $("filters").addEventListener("submit", (e) => { e.preventDefault(); refilter(); });
+  ["category", "statusFilter"].forEach((id) => $(id).addEventListener("change", refilter));
+  ["q", "location"].forEach((id) =>
+    $(id).addEventListener("input", () => { clearTimeout(debounce); debounce = setTimeout(refilter, 300); }));
+
+  $("prev").addEventListener("click", () => { state.offset = Math.max(0, state.offset - PAGE_SIZE); loadItems(); });
+  $("next").addEventListener("click", () => { state.offset += PAGE_SIZE; loadItems(); });
+
+  $("reportBtn").addEventListener("click", () => {
+    $("reportForm").reset();
+    $("dateFound").max = new Date().toISOString().slice(0, 10);
+    showFormError("reportError", "");
+    $("reportDlg").showModal();
+  });
+  document.querySelectorAll("[data-close]").forEach((b) =>
+    b.addEventListener("click", () => b.closest("dialog").close()));
+
+  // Fill category dropdowns.
+  for (const c of CATEGORIES) {
+    $("category").append(new Option(label(c), c));
+    $("newCategory").append(new Option(label(c), c));
+  }
+  loadItems();
+</script>
+</body>
+</html>
