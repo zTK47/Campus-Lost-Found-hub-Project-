@@ -3,3 +3,12 @@ __pycache__/
 .pytest_cache/
 .venv/
 .venv-*/
+
+# Local SQLite database created by the app (contains test data)
+*.db
+*.sqlite3
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
