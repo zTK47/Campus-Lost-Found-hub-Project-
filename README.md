@@ -317,6 +317,7 @@ is covered by `test_accept_unknown_claim_returns_not_found`.
 | Business rules | State transitions, finder-driven claim acceptance and typed domain errors | `app/crud.py` |
 | Error mapping | Convert domain errors to JSON HTTP errors in one place | `app/main.py` |
 | Persistence | SQLModel engine, sessions, tables and sample-data setup | `app/database.py`, `app/models.py` |
+| Web interface | Pages, forms and messages; calls the API with `fetch()` | `app/static/`, `app/routes/pages.py` |
 
 ### Endpoint status
 
@@ -352,6 +353,92 @@ covers the core scenarios and concurrent claim acceptance.
   before a future release.
 - `id_card` items are publicly listed; define redaction and moderation policy
   before production use.
+
+## 3b. Web interface (Milestone 3 — integration)
+
+### Frontend approach
+
+Proposal for the team: plain HTML, CSS and JavaScript pages served by FastAPI.
+
+- The pages call the same REST API with `fetch()`. The frontend uses the API
+  like any other client, so the API stays demonstrable on its own in `/docs`.
+- Validation and business rules stay in one place (`app/schemas.py`,
+  `app/crud.py`). The pages do not repeat them; they show the API's `404`,
+  `409` and `422` responses to the user.
+- There is no build step and no new dependency. The pages are in `app/static`
+  and are served by `app/routes/pages.py`, which is excluded from the OpenAPI
+  contract because it returns HTML.
+- Alternative considered: Jinja2 templates. They would need template routes
+  and form handling in Python; we keep them as an option if server rendering
+  is preferred.
+
+Tools: custom code only, no low-code or no-code platform. The font Atkinson
+Hyperlegible is loaded from Google Fonts; without internet the system font is
+used. Claude (AI assistant) was used to draft the pages and this section; the
+team is responsible for reviewing and explaining them.
+
+### Pages
+
+| Page | Address | API operations used |
+|---|---|---|
+| Found items, with keyword, category, location and status filters | `/` | `GET /items` |
+| Report a found item | `/report` | `POST /items` |
+| Item detail and claim form | `/item?id=12` | `GET /items/{id}`, `POST /items/{id}/claims` |
+| Finder area: review and accept claims, return or reopen the item | `/finder?id=12` | `GET /items/{id}`, `GET /items/{id}/claims`, `PATCH /items/{id}/claims/{claim_id}`, `PATCH /items/{id}` |
+
+All pages share one header with the navigation, work on desktop and mobile,
+and can be used with the keyboard.
+
+### Demonstrated journey: a seeker claims an item and the finder accepts it
+
+| Step | Page and action | Request | Response | Stored data |
+|---|---|---|---|---|
+| 1 | Found items: search for "bottle" | `GET /items` with `q=bottle` | `200` with public items and a count | No change |
+| 2 | Item detail: open item No. 12 | `GET /items/{id}` for item 12 | `200` with public details and claim count | No change |
+| 3 | Item detail: send a claim with a hidden detail | `POST /items/{id}/claims` with name, email and proof | `201` with the claim, status `pending`, without the proof | New `claim` row (`pending`); the item stays `open` |
+| 4 | Finder area: open item No. 12 | `GET /items/{id}` and `GET /items/{id}/claims` | `200` with the item and all claims, including proof | No change |
+| 5 | Finder area: accept the claim | `PATCH /items/{id}/claims/{claim_id}` with `{"status": "accepted"}` | `200` with the claim, status `accepted` | Claim `accepted`, other pending claims `rejected`, item `claimed` |
+| 6 | Finder area: mark as returned after the handover | `PATCH /items/{id}` with `{"status": "returned"}` | `200` with the item, status `returned` | Item `returned`; hidden from the default list |
+
+How one request travels through the layers (step 3):
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (app/static/js/item.js)
+    participant R as API route (app/routes/claims.py)
+    participant S as Service layer (app/crud.py)
+    participant D as Database (SQLite or MySQL)
+    B->>R: POST /items/12/claims with JSON body
+    R->>R: Validate the body (app/schemas.py), 422 if invalid
+    R->>S: create_claim()
+    S->>D: Check the item is open, insert a pending claim
+    D-->>S: Stored claim
+    S-->>R: Claim, or ItemNotOpenError (409)
+    R-->>B: 201 Created without the proof
+    B->>B: Show "Claim sent" and the claim number
+```
+
+**Feedback for unsuccessful operations**
+
+| Response | Where | What the page shows |
+|---|---|---|
+| `422` | Report form, claim form | A message under each invalid field; the entered values stay |
+| `409` | Claim form, finder actions | The API's explanation, for example that the item is no longer open; the page then shows the current state |
+| `404` | Item page, finder area | "There is no item with reference No. …" with a way back |
+| No response | All pages | "The server cannot be reached. Check that it is running and try again." |
+
+"Show API activity" at the bottom of every page lists the latest requests and
+their status codes, so the demo shows which request each action sends.
+
+### Open integration points
+
+- There is no login yet. Anyone with a reference number can open the finder
+  area. The operations to protect are `GET /items/{id}/claims`,
+  `PATCH /items/{id}/claims/{claim_id}` and `PATCH /items/{id}`.
+- At startup only the sample item 12 is created. Loading the demo items in
+  `app/data/demo_items.json` is the next step.
+- The API has no operation to reject a single claim, so the finder area has no
+  reject button (see Known limitations).
 
 ## 3. Project management
 
@@ -402,7 +489,8 @@ team; no coaching feedback has been recorded in this milestone.
    uvicorn app.main:app --reload
    ```
 
-3. Open the interactive API docs at http://127.0.0.1:8000/docs.
+3. Open the web interface at http://127.0.0.1:8000/ and the interactive API
+   docs at http://127.0.0.1:8000/docs.
 
 4. Run the automated tests:
 

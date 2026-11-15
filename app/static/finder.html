@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finder area | Campus Lost & Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="site-name" href="/">Campus Lost & Found</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Found items</a></li>
+          <li><a href="/report">Report a found item</a></li>
+          <li><a href="/finder">Finder area</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>Finder area</h1>
+    <p class="intro">Review the claims for an item you reported, accept the right one and mark the item as returned after the handover.</p>
+
+    <div class="message">
+      <p>There is no login yet, so anyone with a reference number can open this page. Access protection is planned for a later milestone.</p>
+    </div>
+
+    <form class="reference-form" id="reference-form" novalidate>
+      <div class="field">
+        <label for="reference">Reference number</label>
+        <input id="reference" name="reference" type="number" min="1" inputmode="numeric">
+      </div>
+      <button class="button" type="submit">Open item</button>
+    </form>
+
+    <div class="message" id="message" aria-live="polite"></div>
+
+    <div class="two-columns" id="finder-layout" hidden>
+      <div>
+        <div id="item"></div>
+        <div id="item-actions"></div>
+      </div>
+      <section aria-labelledby="claims-heading">
+        <h2 id="claims-heading">Claims</h2>
+        <p class="claim-meta" id="claims-hint"></p>
+        <ul class="claim-list" id="claims"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Campus Lost & Found, group project for Web-based Applications at FHNW. <a href="/docs">API documentation</a></p>
+      <button class="activity-toggle" type="button" aria-expanded="false" aria-controls="activity">Show API activity</button>
+      <div class="activity" id="activity" hidden></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/static/js/finder.js"></script>
+</body>
+</html>

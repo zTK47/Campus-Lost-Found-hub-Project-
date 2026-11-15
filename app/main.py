@@ -4,12 +4,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session
 
 from app import crud
 from app.config import SEED_SAMPLE_DATA
 from app.database import engine, init_db, seed_sample_data
-from app.routes import claims, items
+from app.routes import claims, items, pages
 
 
 @asynccontextmanager
@@ -37,3 +38,5 @@ app = FastAPI(
 app.add_exception_handler(crud.DomainError, _domain_error_response)
 app.include_router(items.router)
 app.include_router(claims.router)
+app.include_router(pages.router)
+app.mount("/static", StaticFiles(directory=pages.STATIC_DIR), name="static")

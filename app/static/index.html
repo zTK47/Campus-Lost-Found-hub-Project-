@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Found items | Campus Lost & Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="site-name" href="/">Campus Lost & Found</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Found items</a></li>
+          <li><a href="/report">Report a found item</a></li>
+          <li><a href="/finder">Finder area</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>What did you lose?</h1>
+    <p class="intro">Search the items that students and staff found on campus. If yours is here, open it and tell the finder a detail only the owner knows.</p>
+
+    <form class="search" id="search-form" role="search">
+      <div class="search-main">
+        <div class="field">
+          <label for="q">Keyword</label>
+          <input id="q" name="q" type="search" placeholder="bottle, keys, jacket…" autocomplete="off">
+        </div>
+        <button class="button" type="submit">Search</button>
+      </div>
+      <div class="search-filters">
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="location">Where it was found</label>
+          <input id="location" name="location" type="text" placeholder="Library, building A…">
+        </div>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="">Open and claimed</option>
+            <option value="open">Open</option>
+            <option value="claimed">Claimed</option>
+            <option value="returned">Returned</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <div class="message" id="message" aria-live="polite"></div>
+    <p class="result-count" id="result-count" aria-live="polite"></p>
+    <ul class="tag-grid" id="results"></ul>
+    <div class="actions">
+      <button class="button button-quiet" id="show-more" type="button" hidden>Show more items</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Campus Lost & Found, group project for Web-based Applications at FHNW. <a href="/docs">API documentation</a></p>
+      <button class="activity-toggle" type="button" aria-expanded="false" aria-controls="activity">Show API activity</button>
+      <div class="activity" id="activity" hidden></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/static/js/list.js"></script>
+</body>
+</html>
