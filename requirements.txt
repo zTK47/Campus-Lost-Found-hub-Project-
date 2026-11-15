@@ -1,8 +1,8 @@
-fastapi
+fastapi>=0.100
 uvicorn
-pydantic
-sqlmodel
+pydantic>=2.0
+sqlmodel>=0.0.14
 pymysql
-email-validator
+email-validator>=2.0
 pytest
 httpx

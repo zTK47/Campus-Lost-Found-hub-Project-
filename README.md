@@ -1,6 +1,7 @@
 # Campus Lost & Found Hub
 
-**Current stage:** Milestone 2 — contract and first implementation.
+**Current stage:** Milestone 3 — integration. Milestones 1 (design) and 2
+(backend) are complete; the web interface is connected to the API (section 3b).
 
 The project uses the workflow, sketch and sample-data approach from the class
 exercises, adapted to a campus lost-and-found service. Decisions made here are
@@ -69,9 +70,18 @@ one claim; that claim changes the item to `claimed` and all remaining pending
 claims are rejected. Reopening a claimed item is represented by
 `PATCH /items/{id}` with `{"status":"open"}` and rejects its accepted claim.
 
-**Out of initial scope:** login, campus accounts, payments, rewards, chat,
-automatic matching, notifications, photo upload, lost-item posts, deletion,
-moderation and automatic expiration.
+**Planned for later milestones** (required by the project guidelines for the
+final submission: CRUD on the core entity and login with access checks):
+
+- As a **finder**, I want to log in, so that only I can review the claims for
+  my items and change their status.
+- As a **finder**, I want to edit or delete my own post while it is still
+  `open`, so that the information stays correct.
+- As an **admin**, I want to remove expired or stalled items, so that the list
+  stays up to date.
+
+**Out of scope:** payments, rewards, chat, automatic matching, notifications,
+photo upload, lost-item posts, moderation tools and automatic expiration.
 
 ## 2. Design
 
@@ -115,7 +125,7 @@ when reporting an item but is never returned publicly.
 #### Item state machine
 
 | Current state | Next state | Trigger | Actor |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | `open` | `claimed` | Finder accepts a pending claim atomically | Finder |
 | `claimed` | `open` | Finder reopens the item after reviewing the claim | Finder |
 | `claimed` | `returned` | Handover is complete | Finder |
@@ -317,6 +327,7 @@ is covered by `test_accept_unknown_claim_returns_not_found`.
 | Business rules | State transitions, finder-driven claim acceptance and typed domain errors | `app/crud.py` |
 | Error mapping | Convert domain errors to JSON HTTP errors in one place | `app/main.py` |
 | Persistence | SQLModel engine, sessions, tables and sample-data setup | `app/database.py`, `app/models.py` |
+| Web interface | Pages, forms and messages; calls the API with `fetch()` | `app/static/`, `app/routes/pages.py` |
 
 ### Endpoint status
 
@@ -353,6 +364,92 @@ covers the core scenarios and concurrent claim acceptance.
 - `id_card` items are publicly listed; define redaction and moderation policy
   before production use.
 
+## 3b. Web interface (Milestone 3 — integration)
+
+### Frontend approach
+
+Proposal for the team: plain HTML, CSS and JavaScript pages served by FastAPI.
+
+- The pages call the same REST API with `fetch()`. The frontend uses the API
+  like any other client, so the API stays demonstrable on its own in `/docs`.
+- Validation and business rules stay in one place (`app/schemas.py`,
+  `app/crud.py`). The pages do not repeat them; they show the API's `404`,
+  `409` and `422` responses to the user.
+- There is no build step and no new dependency. The pages are in `app/static`
+  and are served by `app/routes/pages.py`, which is excluded from the OpenAPI
+  contract because it returns HTML.
+- Alternative considered: Jinja2 templates. They would need template routes
+  and form handling in Python; we keep them as an option if server rendering
+  is preferred.
+
+Tools: custom code only, no low-code or no-code platform. The font Atkinson
+Hyperlegible is loaded from Google Fonts; without internet the system font is
+used. Claude (AI assistant) was used to draft the pages and this section; the
+team is responsible for reviewing and explaining them.
+
+### Pages
+
+| Page | Address | API operations used |
+|---|---|---|
+| Found items, with keyword, category, location and status filters | `/` | `GET /items` |
+| Report a found item | `/report` | `POST /items` |
+| Item detail and claim form | `/item?id=12` | `GET /items/{id}`, `POST /items/{id}/claims` |
+| Finder area: review and accept claims, return or reopen the item | `/finder?id=12` | `GET /items/{id}`, `GET /items/{id}/claims`, `PATCH /items/{id}/claims/{claim_id}`, `PATCH /items/{id}` |
+
+All pages share one header with the navigation, work on desktop and mobile,
+and can be used with the keyboard.
+
+### Demonstrated journey: a seeker claims an item and the finder accepts it
+
+| Step | Page and action | Request | Response | Stored data |
+|---|---|---|---|---|
+| 1 | Found items: search for "bottle" | `GET /items` with `q=bottle` | `200` with public items and a count | No change |
+| 2 | Item detail: open item No. 12 | `GET /items/{id}` for item 12 | `200` with public details and claim count | No change |
+| 3 | Item detail: send a claim with a hidden detail | `POST /items/{id}/claims` with name, email and proof | `201` with the claim, status `pending`, without the proof | New `claim` row (`pending`); the item stays `open` |
+| 4 | Finder area: open item No. 12 | `GET /items/{id}` and `GET /items/{id}/claims` | `200` with the item and all claims, including proof | No change |
+| 5 | Finder area: accept the claim | `PATCH /items/{id}/claims/{claim_id}` with `{"status": "accepted"}` | `200` with the claim, status `accepted` | Claim `accepted`, other pending claims `rejected`, item `claimed` |
+| 6 | Finder area: mark as returned after the handover | `PATCH /items/{id}` with `{"status": "returned"}` | `200` with the item, status `returned` | Item `returned`; hidden from the default list |
+
+How one request travels through the layers (step 3):
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (app/static/js/item.js)
+    participant R as API route (app/routes/claims.py)
+    participant S as Service layer (app/crud.py)
+    participant D as Database (SQLite or MySQL)
+    B->>R: POST /items/12/claims with JSON body
+    R->>R: Validate the body (app/schemas.py), 422 if invalid
+    R->>S: create_claim()
+    S->>D: Check the item is open, insert a pending claim
+    D-->>S: Stored claim
+    S-->>R: Claim, or ItemNotOpenError (409)
+    R-->>B: 201 Created without the proof
+    B->>B: Show "Claim sent" and the claim number
+```
+
+**Feedback for unsuccessful operations**
+
+| Response | Where | What the page shows |
+|---|---|---|
+| `422` | Report form, claim form | A message under each invalid field; the entered values stay |
+| `409` | Claim form, finder actions | The API's explanation, for example that the item is no longer open; the page then shows the current state |
+| `404` | Item page, finder area | "There is no item with reference No. …" with a way back |
+| No response | All pages | "The server cannot be reached. Check that it is running and try again." |
+
+"Show API activity" at the bottom of every page lists the latest requests and
+their status codes, so the demo shows which request each action sends.
+
+### Open integration points
+
+- There is no login yet. Anyone with a reference number can open the finder
+  area. The operations to protect are `GET /items/{id}/claims`,
+  `PATCH /items/{id}/claims/{claim_id}` and `PATCH /items/{id}`.
+- With `DEBUG` and `SEED_SAMPLE_DATA` set to `true`, the 8 demo items in
+  `app/data/demo_items.json` are loaded into an empty database for the demo.
+- The API has no operation to reject a single claim, so the finder area has no
+  reject button (see Known limitations).
+
 ## 3. Project management
 
 ### Decisions, open questions and next steps
@@ -365,11 +462,26 @@ covers the core scenarios and concurrent claim acceptance.
 | Should automatic item expiry be supported? | Explicitly deferred to a later milestone | Revisit after the current workflow / Team |
 | Should seekers post lost items? | Out of scope for now | Revisit after this workflow / Team |
 | Should photos be supported? | Out of scope for now | Revisit after the first workflow / Team |
+| Can the finder reject a single claim? | Not yet: accepting one claim rejects the other pending claims, and reopening an item rejects its accepted claim. An explicit reject operation was proposed after the backend coaching | Decide with Ilir whether to add it; then focus on the web interface / Davide, Ilir |
+| Which frontend approach? | Proposal: HTML, CSS and JavaScript pages that call the REST API (section 3b); Jinja2 templates are the alternative | Confirm at the integration coaching / Team |
 
 ### Coaching notes
 
-To be completed after the next coaching session on a date to be agreed by the
-team; no coaching feedback has been recorded in this milestone.
+**Milestone 2 — backend coaching (26 October 2026)**
+
+| Feedback from the coach | Status | Where |
+|---|---|---|
+| Extend `claims.py` for the backend | Done: claims are `pending` until the finder accepts one; the others are rejected. Rejecting a single claim is still open (see Decisions) | `app/routes/claims.py`, `app/crud.py` |
+| Generate a JSON file to connect the data layer (`db.py`) | Done differently: the in-memory `db.py` became a SQLite/MySQL database with SQLModel, and the demo items are loaded from a JSON file | `app/database.py`, `app/data/demo_items.json` |
+| Extend the service layer | Done: business rules and domain errors live in one place, used by the API and, through the API, by the web interface | `app/crud.py` |
+| Implement operations other than `POST` | Partly done: `GET` and `PATCH` for items and claims exist; editing and deleting items are planned | `app/routes/items.py` |
+| Implement more user stories and details | In progress: planned user stories, state machine, privacy boundary and web interface documentation added | Sections 1, 2 and 3b |
+
+After the coaching the team agreed to discuss claim acceptance and rejection
+first and then to focus on the user interface for Milestone 3.
+
+**Milestone 3 — integration coaching:** to be recorded after the coaching,
+including the operations that need access protection.
 
 ### Contributions
 
@@ -378,7 +490,7 @@ team; no coaching feedback has been recorded in this milestone.
 | Fernando | User roles and found-item/reclaim workflow |
 | Bernardo | Screen sketches and interaction flow |
 | Ilir | FastAPI item and claim endpoints, Pydantic request/response schemas, typed CRUD and domain errors, atomic claim handling, SQLModel persistence, SQLite/MySQL configuration, focused tests and database schema documentation |
-| Davide | README structure, decisions and milestone coordination |
+| Davide | README structure, decisions, coaching notes and milestone coordination; invalid-input (422) test and example, first draft of the item operation contracts, example JSON files and `.gitignore` (Milestone 2); demo data file `app/data/demo_items.json` and its loading at startup; web interface (`app/static`, `app/routes/pages.py`) and its documentation (Milestone 3) |
 
 ### Questions for the lecturer
 
@@ -387,6 +499,10 @@ team; no coaching feedback has been recorded in this milestone.
 2. Is the planned finder authorization boundary sufficient for the next
    milestone?
 3. Should special handling for `id_card` items be reviewed with campus staff?
+4. Is a static HTML/JavaScript frontend that calls the REST API a suitable
+   approach, or do you prefer server-rendered Jinja2 templates?
+5. Should the finder be able to reject a single claim explicitly, or is
+   "accept one, reject the others" enough for the core workflow?
 
 ## Getting started
 
@@ -402,7 +518,8 @@ team; no coaching feedback has been recorded in this milestone.
    uvicorn app.main:app --reload
    ```
 
-3. Open the interactive API docs at http://127.0.0.1:8000/docs.
+3. Open the web interface at http://127.0.0.1:8000/ and the interactive API
+   docs at http://127.0.0.1:8000/docs.
 
 4. Run the automated tests:
 
@@ -428,8 +545,12 @@ The raw MySQL schema is documented in [`docs/schema.sql`](docs/schema.sql).
 Tests run against SQLite by default. Set `TEST_MYSQL_URL` to run
 `tests/test_mysql.py` against MySQL.
 
-Sample data is seeded only when both `DEBUG` and `SEED_SAMPLE_DATA` are true,
-and only when the item table is empty. `init_db()` uses `create_all()` for
+Demo data is loaded only when both `DEBUG` and `SEED_SAMPLE_DATA` are true,
+and only when the item table is empty: the 8 items in
+`app/data/demo_items.json`, including item 12 used in the examples. Start the
+app with demo data with `DEBUG=true SEED_SAMPLE_DATA=true uvicorn app.main:app --reload`
+(Windows PowerShell: `$env:DEBUG="true"; $env:SEED_SAMPLE_DATA="true"; uvicorn app.main:app --reload`).
+The tests use only item 12 (`seed_sample_data()`). `init_db()` uses `create_all()` for
 this course project; Alembic migrations are the production-grade follow-up
 for schema evolution.
 
@@ -439,7 +560,8 @@ for schema evolution.
 |---|---|---|
 | 1 — Design draft | Analysis, workflow, sketches and example JSON | Complete |
 | 2 — Contract and first implementation | API contract, item and claim operations, validation and tests | Complete for the listed implemented endpoints |
-| Integration — later | Authentication, finder authorization and a connected workflow | Plan after the next coaching session |
+| 3 — Integration | Web interface connected to the API, one user journey from search to handover, architecture and open points (section 3b) | In progress: demo at the integration coaching |
+| 4 — Submission readiness | Login and access checks, editing and deleting items, final documentation and recorded presentation | Planned |
 
 The complete milestones, dates and assessment criteria are in the Moodle
 assignment. This README records the team's decisions and design evidence;

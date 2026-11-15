@@ -1,0 +1,623 @@
+/* Campus Lost & Found: shared styles for all pages. */
+
+:root {
+  --paper: #f5f7fa;
+  --surface: #ffffff;
+  --ink: #17202c;
+  --muted: #535e6d;
+  --line: #d6dce4;
+  --tag: #efd9a2;
+  --tag-edge: #d4b46a;
+  --action: #1f4fd1;
+  --action-dark: #173c9f;
+  --open: #1e7a4c;
+  --claimed: #9a5800;
+  --returned: #535e6d;
+  --danger: #b42318;
+  --danger-bg: #fdeceb;
+  --ok-bg: #e7f4ec;
+  --info-bg: #eaf0fc;
+  --radius-field: 4px;
+  --radius-tag: 6px;
+  --space: 1rem;
+  font-size: 106.25%; /* 17px base */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Elements hidden from JavaScript stay hidden even if a class sets display. */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--action);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--action-dark);
+}
+
+:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-size: 2.25rem;
+}
+
+@media (max-width: 34rem) {
+  h1 {
+    font-size: 1.85rem;
+  }
+}
+
+h2 {
+  font-size: 1.4rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Layout */
+
+.wrap {
+  width: 100%;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.site-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav a {
+  display: inline-block;
+  padding: 0.25rem 0;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.site-nav a:hover {
+  border-bottom-color: var(--line);
+}
+
+.site-nav a[aria-current="page"] {
+  border-bottom-color: var(--action);
+  font-weight: 700;
+}
+
+main.wrap {
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+}
+
+.intro {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.two-columns {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 52rem) {
+  .two-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+}
+
+/* Forms */
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.field .hint {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid #9aa5b4;
+  border-radius: var(--radius-field);
+  padding: 0.55rem 0.65rem;
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+.field-error {
+  display: block;
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+
+.form-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-tag);
+  padding: 1.5rem;
+}
+
+.button {
+  display: inline-block;
+  font: inherit;
+  font-weight: 700;
+  border: 2px solid var(--action);
+  border-radius: var(--radius-field);
+  padding: 0.55rem 1.1rem;
+  background: var(--action);
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button:hover {
+  background: var(--action-dark);
+  border-color: var(--action-dark);
+  color: #ffffff;
+}
+
+.button-quiet {
+  background: transparent;
+  color: var(--action);
+}
+
+.button-quiet:hover {
+  background: var(--info-bg);
+  color: var(--action-dark);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Search */
+
+.search {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-tag);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-main {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.search-main .field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.search-main input {
+  font-size: 1.2rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.search-filters {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.search-filters .field {
+  margin-bottom: 0;
+}
+
+@media (max-width: 34rem) {
+  .search-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-filters .field {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.result-count {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* The found-item tag: the one distinctive element of the interface. */
+
+.tag-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  position: relative;
+  background: var(--tag);
+  border: 1px solid var(--tag-edge);
+  border-radius: var(--radius-tag) var(--radius-tag) var(--radius-tag) 1.75rem;
+  padding: 1.1rem 1.1rem 1rem 1.1rem;
+  height: 100%;
+}
+
+.tag::before {
+  /* Punched hole of a paper tag. */
+  content: "";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--tag-edge);
+}
+
+.tag-ref {
+  text-align: right;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 0.5rem;
+}
+
+.tag-title {
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+.tag-title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tag-title a::after {
+  /* Makes the whole tag clickable. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tag:hover {
+  border-color: var(--ink);
+}
+
+.tag:focus-within {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.tag-title a:focus-visible {
+  outline: none;
+}
+
+.tag-details {
+  margin: 0 0 0.75rem;
+  color: #3c3220;
+}
+
+.tag-details p {
+  margin: 0;
+}
+
+.tag-large {
+  padding: 1.5rem;
+  border-radius: var(--radius-tag) var(--radius-tag) var(--radius-tag) 2.25rem;
+}
+
+.tag-large::before {
+  top: 1.35rem;
+  left: 1.35rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.tag-large .tag-ref {
+  font-size: 2.4rem;
+}
+
+.tag-large .tag-title {
+  font-size: 1.6rem;
+}
+
+.tag-description {
+  margin: 0.75rem 0;
+}
+
+.tag + p {
+  margin-top: 0.75rem;
+}
+
+.actions + .claim-meta {
+  margin-top: 0.6rem;
+}
+
+/* Status labels */
+
+.status {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.65rem;
+  border: 2px solid currentColor;
+  background: var(--surface);
+}
+
+.status-open,
+.status-accepted {
+  color: var(--open);
+}
+
+.status-claimed,
+.status-pending {
+  color: var(--claimed);
+}
+
+.status-returned,
+.status-rejected {
+  color: var(--returned);
+}
+
+/* Messages */
+
+.message {
+  border-left: 4px solid var(--action);
+  background: var(--info-bg);
+  padding: 0.85rem 1rem;
+  margin: 0 0 1.25rem;
+  border-radius: 0 var(--radius-field) var(--radius-field) 0;
+}
+
+.message p:last-child {
+  margin-bottom: 0;
+}
+
+.message-error {
+  border-left-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.message-success {
+  border-left-color: var(--open);
+  background: var(--ok-bg);
+}
+
+.message:empty {
+  display: none;
+}
+
+.empty-state {
+  background: var(--surface);
+  border: 1px dashed #9aa5b4;
+  border-radius: var(--radius-tag);
+  padding: 1.5rem;
+}
+
+/* Finder claim review */
+
+.claim-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.claim {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.claim-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.claim-head h3 {
+  margin: 0;
+}
+
+.steps {
+  padding-left: 1.25rem;
+  margin: 0;
+}
+
+.steps li {
+  margin-bottom: 0.6rem;
+}
+
+.claim-proof {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  padding: 0.6rem 0.75rem;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.claim-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.reference-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.reference-form .field {
+  margin-bottom: 0;
+  width: 12rem;
+}
+
+/* Footer and API activity */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 1.25rem 0 2rem;
+}
+
+.site-footer .wrap > p {
+  margin-bottom: 0.5rem;
+}
+
+.activity-toggle {
+  font: inherit;
+  background: none;
+  border: none;
+  color: var(--action);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.activity table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity th,
+.activity td {
+  text-align: left;
+  padding: 0.3rem 0.5rem 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .flash {
+    animation: flash 1.2s ease-out;
+  }
+
+  @keyframes flash {
+    from {
+      box-shadow: 0 0 0 4px var(--open);
+    }
+
+    to {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+}

@@ -263,3 +263,14 @@ def test_concurrent_claim_acceptance_only_one_succeeds(tmp_path):
         statuses = list(executor.map(accept_claim, claim_ids))
 
     assert sorted(statuses) == [200, 409]
+
+
+def test_claims_are_listed_in_the_order_they_were_sent(client):
+    for name in ("First Claimant", "Second Claimant", "Third Claimant"):
+        client.post("/items/12/claims", json={
+            "claimant_name": name,
+            "claimant_contact": "claimant@example.com",
+            "proof_description": "A hidden detail",
+        })
+    names = [claim["claimant_name"] for claim in client.get("/items/12/claims").json()]
+    assert names == ["First Claimant", "Second Claimant", "Third Claimant"]

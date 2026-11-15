@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report a found item | Campus Lost & Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="site-name" href="/">Campus Lost & Found</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Found items</a></li>
+          <li><a href="/report">Report a found item</a></li>
+          <li><a href="/finder">Finder area</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <h1>Report a found item</h1>
+    <p class="intro">Describe what you found so the owner can recognise it. Your email is never shown publicly.</p>
+
+    <div class="two-columns">
+      <section class="form-panel" aria-label="Found item form">
+        <div class="message" id="message" aria-live="polite"></div>
+
+        <form id="report-form" novalidate>
+          <div class="field">
+            <label for="title">What did you find?</label>
+            <input id="title" name="title" type="text" maxlength="100" placeholder="Blue water bottle">
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+              <option value="">Choose a category</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="description">Description (optional)</label>
+            <span class="hint" id="description-hint">Everyone can read it. Leave out names, phone numbers and card numbers.</span>
+            <textarea id="description" name="description" maxlength="1000" aria-describedby="description-hint"></textarea>
+          </div>
+          <div class="field">
+            <label for="location_found">Where did you find it?</label>
+            <input id="location_found" name="location_found" type="text" maxlength="150" placeholder="Building A, lecture hall 2">
+          </div>
+          <div class="field">
+            <label for="date_found">When did you find it?</label>
+            <input id="date_found" name="date_found" type="date">
+          </div>
+          <div class="field">
+            <label for="finder_contact">Your email</label>
+            <span class="hint" id="contact-hint">Only used for this item. Owners do not see it.</span>
+            <input id="finder_contact" name="finder_contact" type="email" autocomplete="email" aria-describedby="contact-hint">
+          </div>
+          <button class="button" type="submit">Post item</button>
+        </form>
+
+        <div id="confirmation" hidden></div>
+      </section>
+
+      <aside>
+        <h2>What happens next</h2>
+        <ol class="steps">
+          <li>Your item appears in the list of found items with a reference number.</li>
+          <li>People who think it is theirs send a claim with a detail only the owner knows.</li>
+          <li>In the finder area you read the claims, accept the right one and mark the item as returned after the handover.</li>
+        </ol>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Campus Lost & Found, group project for Web-based Applications at FHNW. <a href="/docs">API documentation</a></p>
+      <button class="activity-toggle" type="button" aria-expanded="false" aria-controls="activity">Show API activity</button>
+      <div class="activity" id="activity" hidden></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/static/js/report.js"></script>
+</body>
+</html>

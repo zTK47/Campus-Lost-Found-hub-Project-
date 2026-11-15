@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Found item | Campus Lost & Found</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="site-name" href="/">Campus Lost & Found</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Found items</a></li>
+          <li><a href="/report">Report a found item</a></li>
+          <li><a href="/finder">Finder area</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <a class="back-link" href="/">Back to found items</a>
+    <div class="message" id="page-message" aria-live="polite"></div>
+
+    <div class="two-columns" id="item-layout" hidden>
+      <div id="item"></div>
+
+      <section class="form-panel" aria-labelledby="claim-heading">
+        <h2 id="claim-heading">Is this yours?</h2>
+        <div class="message" id="claim-message" aria-live="polite"></div>
+
+        <form id="claim-form" novalidate>
+          <p>Describe a detail that is not in the description, for example a sticker, a scratch or what is inside. Only the finder sees it.</p>
+          <div class="field">
+            <label for="claimant_name">Your name</label>
+            <input id="claimant_name" name="claimant_name" type="text" autocomplete="name" maxlength="100">
+          </div>
+          <div class="field">
+            <label for="claimant_contact">Your email</label>
+            <span class="hint" id="contact-hint">The finder uses it to arrange the handover.</span>
+            <input id="claimant_contact" name="claimant_contact" type="email" autocomplete="email" aria-describedby="contact-hint">
+          </div>
+          <div class="field">
+            <label for="proof_description">Hidden detail</label>
+            <textarea id="proof_description" name="proof_description" maxlength="2000"></textarea>
+          </div>
+          <button class="button" type="submit">Send claim</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Campus Lost & Found, group project for Web-based Applications at FHNW. <a href="/docs">API documentation</a></p>
+      <button class="activity-toggle" type="button" aria-expanded="false" aria-controls="activity">Show API activity</button>
+      <div class="activity" id="activity" hidden></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/static/js/item.js"></script>
+</body>
+</html>

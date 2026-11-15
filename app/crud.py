@@ -230,4 +230,10 @@ def accept_claim(session: Session, item_id: int, claim_id: int) -> Claim:
 
 def list_claims_for_item(session: Session, item_id: int) -> list[Claim]:
     get_item(session, item_id)
-    return list(session.exec(select(Claim).where(Claim.item_id == item_id)))
+    return list(
+        session.exec(
+            select(Claim)
+            .where(Claim.item_id == item_id)
+            .order_by(Claim.created_at, Claim.id)
+        )
+    )
