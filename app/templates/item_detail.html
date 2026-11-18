@@ -1,0 +1,18 @@
+{% if item.status == "open" %}
+<form method="post" action="/items/{{ item.id }}/claims">
+    <h2>Claim this item</h2>
+
+    {% for e in errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+    <label>Your name</label>
+    <input name="claimant_name" required maxlength="100" value="{{ form.claimant_name if form else '' }}">
+    <label>Your email</label>
+    <input name="claimant_contact" type="email" required>
+    <label>How can you prove it is yours?</label>
+    <textarea name="proof_description" required maxlength="2000"></textarea>
+    <button type="submit">Send claim</button>
+</form>
+
+{% else %}
+<p>This item is {{ item.status }} and cannot accept new claims.</p>
+
+{% endif %}

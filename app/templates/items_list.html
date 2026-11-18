@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="get" action="/" class="filters">
+    <div>
+        <label for="q">Search</label>
+        <input id="q" name="q" value="{{ q }}">
+    </div>
+    <div>
+        <label for="category">Category</label>
+        <select id="category" name="category">
+            <option value="">All</option>
+
+            {% for c in categories %}
+            <option value="{{ c }}" {% if category==c %}selected{% endif %}>{{ c }}</option>
+
+            {% endfor %}
+        </select>
+    </div>
+    <!-- location, status similarly -->
+    <button type="submit">Search</button>
+</form>
+
+<p class="count">{{ count }} item{% if count != 1 %}s{% endif %} found</p>
+
+<ul class="items">
+
+    {% for item in items %}
+    <li class="item {{ item.status }}">
+        <h2><a href="/items/{{ item.id }}">{{ item.title }}</a></h2>
+        <div class="meta">{{ item.category }} · {{ item.location_found }} · found {{ item.date_found }}</div>
+
+        {% if item.description %}<p class="desc">{{ item.description }}</p>{% endif %}
+        <span class="pill">{{ item.status }}</span>
+    </li>
+
+    {% else %}
+    <li class="empty">No items match.</li>
+
+    {% endfor %}
+</ul>
+
+<div class="pager">
+
+    {% if offset > 0 %}
+    <a href="/?offset={{ offset - limit }}&q={{ q }}&...">Previous</a>
+
+    {% endif %}
+
+    {% if offset + limit < count %} <a href="/?offset={{ offset + limit }}&q={{ q }}&...">Next</a>
+
+        {% endif %}
+</div>
+
+{% endblock %}

@@ -10,9 +10,12 @@ from app import crud
 from app.config import SEED_SAMPLE_DATA
 from app.database import engine, init_db, seed_sample_data
 from app.routes import claims, items
+from app.routes import pages
 
 from pathlib import Path
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -37,8 +40,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.add_exception_handler(crud.DomainError, _domain_error_response)
+app.include_router(pages.router)
 app.include_router(items.router)
 app.include_router(claims.router)
 
-STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
-app.mount("/app", StaticFiles(directory=STATIC_DIR, html=True), name="frontend")
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+# serve CSS/images
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")),
+          name="static")
