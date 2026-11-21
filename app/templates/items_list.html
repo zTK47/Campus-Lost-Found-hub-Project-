@@ -1,55 +1,70 @@
 {% extends "base.html" %}
 
+{% block title %}Found items · Campus Lost & Found{% endblock %}
+
 {% block content %}
-<form method="get" action="/" class="filters">
-    <div>
-        <label for="q">Search</label>
-        <input id="q" name="q" value="{{ q }}">
-    </div>
-    <div>
-        <label for="category">Category</label>
-        <select id="category" name="category">
-            <option value="">All</option>
-
-            {% for c in categories %}
-            <option value="{{ c }}" {% if category==c %}selected{% endif %}>{{ c }}</option>
-
-            {% endfor %}
-        </select>
-    </div>
-    <!-- location, status similarly -->
-    <button type="submit">Search</button>
+<form method="get" action="/" class="filters" role="search">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="{{ q }}" placeholder="e.g. bottle, keys">
+  </div>
+  <div>
+    <label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">All</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if category == c %}selected{% endif %}>
+          {{ c | replace("_", " ") | capitalize }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="location">Location</label>
+    <input id="location" name="location" type="search" value="{{ location }}" placeholder="e.g. library">
+  </div>
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="" {% if not status %}selected{% endif %}>Open and claimed</option>
+      <option value="open" {% if status == "open" %}selected{% endif %}>Open</option>
+      <option value="claimed" {% if status == "claimed" %}selected{% endif %}>Claimed</option>
+      <option value="returned" {% if status == "returned" %}selected{% endif %}>Returned</option>
+    </select>
+  </div>
+  <div>
+    <button type="submit" class="primary">Search</button>
+  </div>
 </form>
 
-<p class="count">{{ count }} item{% if count != 1 %}s{% endif %} found</p>
+<p class="count" role="status">
+  {{ count }} item{% if count != 1 %}s{% endif %} found
+</p>
 
 <ul class="items">
-
-    {% for item in items %}
-    <li class="item {{ item.status }}">
-        <h2><a href="/items/{{ item.id }}">{{ item.title }}</a></h2>
-        <div class="meta">{{ item.category }} · {{ item.location_found }} · found {{ item.date_found }}</div>
-
-        {% if item.description %}<p class="desc">{{ item.description }}</p>{% endif %}
-        <span class="pill">{{ item.status }}</span>
-    </li>
-
-    {% else %}
-    <li class="empty">No items match.</li>
-
-    {% endfor %}
+  {% for item in items %}
+    {% include "partials/item_card.html" %}
+  {% else %}
+    <li class="empty">No items match. Try fewer filters, or check back later.</li>
+  {% endfor %}
 </ul>
 
 <div class="pager">
+  {% if offset > 0 %}
+    <a href="/?q={{ q }}&category={{ category }}&location={{ location }}&status={{ status }}&limit={{ limit }}&offset={{ offset - limit }}">Previous</a>
+  {% else %}
+    <span></span>
+  {% endif %}
 
-    {% if offset > 0 %}
-    <a href="/?offset={{ offset - limit }}&q={{ q }}&...">Previous</a>
+  <span>
+    Page {{ ((offset // limit) + 1) if limit else 1 }}
+    of {{ ((count + limit - 1) // limit) if limit and count else 1 }}
+  </span>
 
-    {% endif %}
-
-    {% if offset + limit < count %} <a href="/?offset={{ offset + limit }}&q={{ q }}&...">Next</a>
-
-        {% endif %}
+  {% if offset + limit < count %}
+    <a href="/?q={{ q }}&category={{ category }}&location={{ location }}&status={{ status }}&limit={{ limit }}&offset={{ offset + limit }}">Next</a>
+  {% else %}
+    <span></span>
+  {% endif %}
 </div>
-
 {% endblock %}

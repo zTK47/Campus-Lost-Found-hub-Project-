@@ -1,13 +1,11 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Campus Lost & Found{% endblock %}</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
-
 <body>
     <header>
         <div class="wrap">
@@ -18,16 +16,14 @@
             <a class="button primary" href="/report">Report a found item</a>
         </div>
     </header>
-
+    
     <main class="wrap">
-
-        {% if message %}
-        <p class="toast {% if message_error %}error{% endif %}">{{ message }}</p>
-
-        {% endif %}
-
-        {% block content %}{% endblock %}
-    </main>
+    {% if message %}
+        <p class="toast {% if message_error %}error{% endif %}" role="status">
+            {{ message }}
+        </p>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
 </body>
-
 </html>

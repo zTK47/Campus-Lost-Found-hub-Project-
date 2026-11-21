@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Report a found item · Campus Lost & Found{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← All found items</a>
+
+<form method="post" action="/report" class="form-card">
+  <h2>Report a found item</h2>
+
+  {% for error in errors %}
+    <p class="form-error" role="alert">{{ error }}</p>
+  {% endfor %}
+
+  <div>
+    <label for="title">Title</label>
+    <input id="title" name="title" required maxlength="100"
+           value="{{ form.title if form else '' }}">
+  </div>
+  <div>
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+      <option value="" disabled {% if not form or not form.category %}selected{% endif %}>Choose…</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if form and form.category == c %}selected{% endif %}>
+          {{ c | replace("_", " ") | capitalize }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="description">Description (optional)</label>
+    <textarea id="description" name="description" maxlength="1000">{{ form.description if form else '' }}</textarea>
+  </div>
+  <div>
+    <label for="location_found">Where did you find it?</label>
+    <input id="location_found" name="location_found" required maxlength="150"
+           value="{{ form.location_found if form else '' }}">
+  </div>
+  <div>
+    <label for="date_found">Date found</label>
+    <input id="date_found" name="date_found" type="date" required
+           max="{{ today }}"
+           value="{{ form.date_found if form else today }}">
+  </div>
+  <div>
+    <label for="finder_contact">Your email (not shown publicly)</label>
+    <input id="finder_contact" name="finder_contact" type="email" required maxlength="120"
+           value="{{ form.finder_contact if form else '' }}">
+  </div>
+  <div class="actions">
+    <a class="button" href="/">Cancel</a>
+    <button type="submit" class="primary">Report item</button>
+  </div>
+</form>
+{% endblock %}

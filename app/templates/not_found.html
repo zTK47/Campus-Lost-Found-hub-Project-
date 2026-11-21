@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}Not found · Campus Lost & Found{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← All found items</a>
+<div class="empty">{{ message or "The page or item you asked for was not found." }}</div>
+{% endblock %}

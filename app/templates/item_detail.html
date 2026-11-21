@@ -1,18 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} · Campus Lost & Found{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← All found items</a>
+
+<section class="detail-card {{ item.status }}">
+  <h2>{{ item.title }}</h2>
+  <div class="meta">
+    {{ item.category | replace("_", " ") | capitalize }}
+    · {{ item.location_found }}
+    · found {{ item.date_found }}
+    · {{ item.status }}
+    · {{ claim_count }} claim{% if claim_count != 1 %}s{% endif %}
+  </div>
+  {% if item.description %}
+    <p class="desc">{{ item.description }}</p>
+  {% endif %}
+</section>
+
 {% if item.status == "open" %}
-<form method="post" action="/items/{{ item.id }}/claims">
+  <form method="post" action="/items/{{ item.id }}/claims" class="form-card">
     <h2>Claim this item</h2>
+    <p class="meta">Describe something only the owner would know. The finder reviews your answer.</p>
 
-    {% for e in errors %}<p class="form-error">{{ e }}</p>{% endfor %}
-    <label>Your name</label>
-    <input name="claimant_name" required maxlength="100" value="{{ form.claimant_name if form else '' }}">
-    <label>Your email</label>
-    <input name="claimant_contact" type="email" required>
-    <label>How can you prove it is yours?</label>
-    <textarea name="proof_description" required maxlength="2000"></textarea>
-    <button type="submit">Send claim</button>
-</form>
+    {% for error in errors %}
+      <p class="form-error" role="alert">{{ error }}</p>
+    {% endfor %}
 
+    <div>
+      <label for="claimant_name">Your name</label>
+      <input id="claimant_name" name="claimant_name" required maxlength="100"
+             value="{{ form.claimant_name if form else '' }}">
+    </div>
+    <div>
+      <label for="claimant_contact">Your email</label>
+      <input id="claimant_contact" name="claimant_contact" type="email" required maxlength="120"
+             value="{{ form.claimant_contact if form else '' }}">
+    </div>
+    <div>
+      <label for="proof_description">How can you prove it is yours?</label>
+      <textarea id="proof_description" name="proof_description" required maxlength="2000">{{ form.proof_description if form else '' }}</textarea>
+    </div>
+    <div class="actions">
+      <a class="button" href="/">Cancel</a>
+      <button type="submit" class="primary">Send claim</button>
+    </div>
+  </form>
 {% else %}
-<p>This item is {{ item.status }} and cannot accept new claims.</p>
-
+  <p class="meta">This item is <strong>{{ item.status }}</strong> and cannot accept new claims.</p>
 {% endif %}
+{% endblock %}
