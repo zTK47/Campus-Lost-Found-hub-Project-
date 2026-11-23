@@ -43,10 +43,19 @@
 
 <ul class="items">
   {% for item in items %}
-    {% include "partials/item_card.html" %}
-  {% else %}
-    <li class="empty">No items match. Try fewer filters, or check back later.</li>
-  {% endfor %}
+  <li class="item {{ item.status }}">
+  <h2><a href="/items/{{ item.id }}">{{ item.title }}</a></h2>
+  <div class="meta">
+    {{ item.category }} · {{ item.location_found }} · found {{ item.date_found }}
+  </div>
+  {% if item.description %}
+    <p class="desc">{{ item.description }}</p>
+  {% endif %}
+  <span class="pill">{{ item.status }}</span>
+</li>
+{% else %}
+<li class="empty">No items match.</li>
+{% endfor %}
 </ul>
 
 <div class="pager">

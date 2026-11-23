@@ -15,6 +15,11 @@ Category = Enum(
     type=str,
 )
 
+def _must_be_fhnw(value: EmailStr) -> EmailStr:
+    email = str(value).lower()
+    if not email.endswith("fhnw.ch"):
+        raise ValueError("Email must end with fhnw.ch")
+    return value
 
 class ItemCreate(BaseModel):
     model_config = ConfigDict(
@@ -44,6 +49,11 @@ class ItemCreate(BaseModel):
         if value > date.today():
             raise ValueError("date_found must not be in the future")
         return value
+
+    @field_validator("finder_contact")
+    @classmethod
+    def finder_must_be_fhnw(cls, value: EmailStr) -> EmailStr:
+        return _must_be_fhnw(value)
 
 
 def _as_utc(value: datetime) -> datetime:
@@ -131,6 +141,11 @@ class ClaimCreate(BaseModel):
     claimant_name: str = Field(min_length=1, max_length=100)
     claimant_contact: EmailStr
     proof_description: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("claimant_contact")
+    @classmethod
+    def claimant_must_be_fhnw(cls, value: EmailStr) -> EmailStr:
+        return _must_be_fhnw(value)
 
 
 class ClaimPublic(BaseModel):
