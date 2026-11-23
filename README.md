@@ -353,7 +353,46 @@ covers the core scenarios and concurrent claim acceptance.
 - `id_card` items are publicly listed; define redaction and moderation policy
   before production use.
 
-## 3. Project management
+## 3.Frontend (Milestone 3)
+
+**Approach chosen: server-rendered HTML pages inside the same FastAPI app.**
+Jinja2 templates in [`app/templates/`](app/templates/) are rendered by the
+page routes in [`app/routes/pages.py`](app/routes/pages.py) and styled by
+[`app/static/styles.css`](app/static/styles.css). There is no JavaScript
+framework and no separate frontend server: search is a plain `GET` form,
+reporting and claiming are plain `POST` forms, and every successful `POST`
+ends with a redirect (`303`) that shows a one-line confirmation message.
+
+**Why it fits this workflow.** The workflow is short and form-based: finders
+fill in one form, seekers search a list and fill in one claim form. Nothing
+needs live updates, drag-and-drop or client-side state. Server rendering keeps
+one process to start (also in Codespaces), reuses the same Pydantic schemas
+(`ItemCreate`, `ClaimCreate`) for validation, and keeps private data
+(`finder_contact`, `proof_description`) on the server, because no template
+ever receives or prints it.
+
+```mermaid
+flowchart LR
+    B[Browser] -- "HTML form / GET" --> P["Page routes<br/>app/routes/pages.py"]
+    P -- "render" --> T["Jinja2 templates<br/>app/templates/"]
+    P -- "function call" --> C["Business rules<br/>app/crud.py"]
+    C --> D[("SQLite / MySQL<br/>campus_lost_found.db")]
+    B2["Swagger /docs or other client"] -- "JSON" --> A["JSON API routes<br/>items.py, claims.py"]
+    A -- "function call" --> C
+```
+
+**Sketch and current interface.**
+
+- Original sketch: [admin wireframe](assets/admin-view-wireframe.drawio.svg)
+  (three screens: all reported items, review queue, admin item detail).
+- Current interface: the five templates in [`app/templates/`](app/templates/)
+  (`base.html`, `items_list.html`, `report_item.html`, `item_detail.html`,
+  `not_found.html`).
+  
+
+
+
+## 4. Project management
 
 ### Decisions, open questions and next steps
 
@@ -445,7 +484,7 @@ The complete milestones, dates and assessment criteria are in the Moodle
 assignment. This README records the team's decisions and design evidence;
 commit counts do not measure individual effort.
 
-## 4. References and acknowledgements
+## 5. References and acknowledgements
 
 - Class exercises and the bar-ordering scenario, adapted to a campus
   lost-and-found workflow.
