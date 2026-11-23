@@ -389,7 +389,17 @@ flowchart LR
   (`base.html`, `items_list.html`, `report_item.html`, `item_detail.html`,
   `not_found.html`).
   
+**What changed from the original sketch.**
 
+| Sketch element | Current interface | Reason |
+|---|---|---|
+| Admin-only app ("Admin View", Review Queue, Manage Users) | Public seeker/finder pages, no login | Authentication and moderation are out of scope (see "Out of initial scope") |
+| Screen 1: all items with search, Category / Location / Status filters | `/` (`items_list.html`) with search text, category, location and status filters, result count and paging | Kept; made to match `GET /items` filters |
+| Screen 2: Review Queue with Approve / Reject *reports* | Removed | No report-approval step in the backend workflow |
+| Screen 3: admin item detail with claims, proof, Approve/Reject Claim, Mark as Returned | `/items/{id}` shows public details and the claim form only | The backend only supports *accepting* a claim (no reject), and finder-only data must not be shown publicly |
+| Free categories ("Bags", "Personal items") | Fixed seven-value category list from `app/config.py` | Category list fixed by the backend contract |
+| *(not in sketch)* | `/report` form for finders | The sketch had no screen for creating a report |
+| Claimant e-mail `a.lee@campus.edu` | Form accepts only addresses ending in `fhnw.ch` | Rule added to `app/schemas.py` (`_must_be_fhnw`) |
 
 
 ## 4. Project management
