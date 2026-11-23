@@ -398,8 +398,7 @@ flowchart LR
 | Screen 2: Review Queue with Approve / Reject *reports* | Removed | No report-approval step in the backend workflow |
 | Screen 3: admin item detail with claims, proof, Approve/Reject Claim, Mark as Returned | `/items/{id}` shows public details and the claim form only | The backend only supports *accepting* a claim (no reject), and finder-only data must not be shown publicly |
 | Free categories ("Bags", "Personal items") | Fixed seven-value category list from `app/config.py` | Category list fixed by the backend contract |
-| *(not in sketch)* | `/report` form for finders | The sketch had no screen for creating a report |
-| Claimant e-mail `a.lee@campus.edu` | Form accepts only addresses ending in `fhnw.ch` | Rule added to `app/schemas.py` (`_must_be_fhnw`) |
+| Verification email `example@gmail.com` | Form accepts only addresses ending in `fhnw.ch` | Rule added to `app/schemas.py` (`_must_be_fhnw`) |
 
 
 ## 4. Project management
