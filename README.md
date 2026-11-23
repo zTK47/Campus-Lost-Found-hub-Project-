@@ -388,6 +388,7 @@ flowchart LR
 - Current interface: the five templates in [`app/templates/`](app/templates/)
   (`base.html`, `items_list.html`, `report_item.html`, `item_detail.html`,
   `not_found.html`).
+
   
 **What changed from the original sketch.**
 
@@ -399,6 +400,36 @@ flowchart LR
 | Screen 3: admin item detail with claims, proof, Approve/Reject Claim, Mark as Returned | `/items/{id}` shows public details and the claim form only | The backend only supports *accepting* a claim (no reject), and finder-only data must not be shown publicly |
 | Free categories ("Bags", "Personal items") | Fixed seven-value category list from `app/config.py` | Category list fixed by the backend contract |
 | Verification email `example@gmail.com` | Form accepts only addresses ending in `fhnw.ch` | Rule added to `app/schemas.py` (`_must_be_fhnw`) |
+
+
+**Which parts are connected, simulated, incomplete or planned.**
+
+| Part | Status | Detail |
+|---|---|---|
+| Browse / search / filter items (`/`) | Connected | Reads the real database through `crud.list_items` |
+| Report a found item (`/report`) | Connected | Saves a real `Item` through `crud.create_item` |
+| Item detail (`/items/{id}`) | Connected | Reads item and claim count through `crud.get_item_with_claim_count` |
+| Submit a claim (form on item detail) | Connected | Saves a real pending `Claim` through `crud.create_claim` |
+| Finder claim review, accept claim, reopen, mark returned | Incomplete | Backend endpoints exist and are tested, but there is **no screen** for them yet; use `/docs` |
+| Authentication, finder authorisation | Planned | Unchanged from "Known limitations" |
+
+
+### User guide
+
+### **1. Prerequisites**
+* Install Python 3.11+ and the dependencies:
+```bash
+   pip install -r requirements.txt
+```
+
+### **2. Start the server**
+```bash
+uvicorn app.main:app --reload
+```
+
+### **3. Open the app**
+* Open the interactive API docs at http://127.0.0.1:8000/docs.
+
 
 
 ## 4. Project management
