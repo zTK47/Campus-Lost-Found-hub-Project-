@@ -383,7 +383,7 @@ flowchart LR
 
 **Sketch and current interface.**
 
-- Original sketch: [admin wireframe](assets/admin-view-wireframe.drawio.svg)
+- Flowchart: [admin wireframe](assets/admin-view-wireframe.drawio.svg)
   (three screens: all reported items, review queue, admin item detail).
 - Current interface: the five templates in [`app/templates/`](app/templates/)
   (`base.html`, `items_list.html`, `report_item.html`, `item_detail.html`,
