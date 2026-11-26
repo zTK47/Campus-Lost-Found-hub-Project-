@@ -7,6 +7,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.database import get_session
+from app.auth import LoggedIn, require_finder_of_item
 from app.schemas import (
     ClaimCreate,
     ClaimDecision,
@@ -120,9 +121,11 @@ def create_claim(
 )
 def list_claims(
     item_id: PositiveItemId,
+    user: LoggedIn,
     session: Session = Depends(get_session),
 ) -> list[ClaimFinder]:
-    # TODO: require finder/admin authorization before exposing claimant contact and proof beyond the course demo.
+    item = crud.get_item(session, item_id)
+    require_finder_of_item(item, user)
     return crud.list_claims_for_item(session, item_id)
 
 
@@ -191,7 +194,9 @@ def accept_claim(
     item_id: PositiveItemId,
     claim_id: Annotated[int, Path(ge=1)],
     decision: ClaimDecision,
+    user: LoggedIn,
     session: Session = Depends(get_session),
 ) -> ClaimPublic:
-    # TODO: require finder/admin authorization before accepting claims.
+    item = crud.get_item(session, item_id)
+    require_finder_of_item(item, user)
     return crud.accept_claim(session, item_id, claim_id)

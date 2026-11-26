@@ -18,7 +18,7 @@
         "additionalProperties": false,
         "examples": [
           {
-            "claimant_contact": "alex@example.com",
+            "claimant_contact": "alex.example@students.fhnw.ch",
             "claimant_name": "Alex Example",
             "proof_description": "The sticker shows a mountain and there is a dent near the lid."
           }
@@ -68,7 +68,7 @@
       "ClaimFinder": {
         "examples": [
           {
-            "claimant_contact": "alex@example.com",
+            "claimant_contact": "alex.example@students.fhnw.ch",
             "claimant_name": "Alex Example",
             "created_at": "2026-11-08T15:01:49.191598Z",
             "id": 1,
@@ -124,7 +124,7 @@
       "ClaimPublic": {
         "examples": [
           {
-            "claimant_contact": "alex@example.com",
+            "claimant_contact": "alex@students.fhnw.ch",
             "claimant_name": "Alex Example",
             "created_at": "2026-11-08T15:01:49.191598Z",
             "id": 1,

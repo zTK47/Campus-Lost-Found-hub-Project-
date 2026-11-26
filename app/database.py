@@ -6,7 +6,7 @@ from datetime import date
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import database_url
-from app.models import Item, ItemStatus
+from app.models import Item, ItemStatus, User
 
 DATABASE_URL = database_url()
 engine = create_engine(
@@ -27,6 +27,10 @@ def init_db() -> None:
 
 
 def seed_sample_data(session: Session) -> None:
+    from app.accounts import ensure_demo_user
+
+    ensure_demo_user(session)
+
     if session.exec(select(Item)).first() is not None:
         return
     session.add(

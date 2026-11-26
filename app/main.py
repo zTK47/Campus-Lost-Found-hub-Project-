@@ -8,7 +8,8 @@ from sqlmodel import Session
 
 from app import crud
 from app.config import SEED_SAMPLE_DATA
-from app.database import engine, init_db, seed_sample_data
+from app import database as db
+from app.database import init_db, seed_sample_data
 from app.routes import claims, items
 from app.routes import pages
 
@@ -20,8 +21,11 @@ from fastapi.staticfiles import StaticFiles
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
-    if SEED_SAMPLE_DATA:
-        with Session(engine) as session:
+    with Session(db.engine) as session:
+        from app.accounts import ensure_demo_user
+
+        ensure_demo_user(session)
+        if SEED_SAMPLE_DATA:
             seed_sample_data(session)
     yield
 

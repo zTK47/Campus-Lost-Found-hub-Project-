@@ -15,7 +15,10 @@ from app import crud
 from app.config import CATEGORY_VALUES, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from app.database import get_session
 from app.models import ItemStatus
-from app.schemas import Category, ClaimCreate, ItemCreate
+from app.schemas import UserCreate, ItemCreate, ClaimCreate, Category
+from app.auth import BrowserUser, current_user
+from app.accounts import EmailAlreadyRegisteredError, create_user, verify_password 
+from app.sessions import SESSION_TTL, create_session, delete_session, SESSION_COOKIE
 
 router = APIRouter(tags=["pages"])
 
@@ -42,6 +45,17 @@ def _validation_messages(exc: ValidationError) -> list[str]:
         messages.append(f"{field}: {err.get('msg', 'invalid')}")
     return messages
 
+def _set_session_cookie(response: RedirectResponse, email: str) -> RedirectResponse:
+    token = create_session(email)
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=int(SESSION_TTL.total_seconds()),
+        # secure=True  # enable when you serve over HTTPS
+    )
+    return response
 
 def _parse_category(value: str | None) -> Category | None:
     if not value:
@@ -60,6 +74,119 @@ def _parse_status(value: str | None) -> ItemStatus | None:
     except ValueError:
         return None
 
+@router.get("/login", response_class=HTMLResponse)
+def login_form(request: Request, user: BrowserUser | None = Depends(current_user)):
+    if user:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {
+            "error": request.query_params.get("error"),
+            "message": request.query_params.get("message"),
+            "user": None,
+        },
+    )
+
+@router.post("/login")
+def login_submit(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    email = email.strip().lower()
+    if not email.endswith("fhnw.ch"):
+        return RedirectResponse(
+            "/login?error=Please+use+your+%40fhnw.ch+email",
+            status_code=303,
+        )
+    account = verify_password(session, email, password)
+    if not account:
+        return RedirectResponse(
+            "/login?error=Incorrect+email+or+password",
+            status_code=303,
+        )
+    response = RedirectResponse("/", status_code=303)
+    return _set_session_cookie(response, account.email)
+
+@router.get("/register", response_class=HTMLResponse)
+def register_form(request: Request, user: BrowserUser | None = Depends(current_user)):
+    if user:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "register.html",
+        {
+            "error": request.query_params.get("error"),
+            "form": {},
+            "user": None,
+        },
+    )
+
+@router.post("/register")
+def register_submit(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    password_confirm: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    form = {"email": email}
+    if password != password_confirm:
+        return templates.TemplateResponse(
+            request,
+            "register.html",
+            {
+                "error": "Passwords do not match",
+                "form": form,
+                "user": None,
+            },
+            status_code=422,
+        )
+
+    try:
+        data = UserCreate(email=email.strip().lower(), password=password)
+    except ValidationError as exc:
+        messages = _validation_messages(exc)
+        return templates.TemplateResponse(
+            request,
+            "register.html",
+            {
+                "error": "; ".join(messages),
+                "form": form,
+                "user": None,
+            },
+            status_code=422,
+        )
+
+    try:
+        user = create_user(session, data.email, data.password)
+    except EmailAlreadyRegisteredError:
+        return templates.TemplateResponse(
+            request,
+            "register.html",
+            {
+                "error": "An account with this email already exists",
+                "form": form,
+                "user": None,
+            },
+            status_code=409,
+        )
+
+    response = RedirectResponse(
+        "/?message=" + quote("Welcome! Your account was created."),
+        status_code=303,
+    )
+    return _set_session_cookie(response, user.email)
+
+@router.post("/logout")
+def logout(request: Request):
+    token = request.cookies.get(SESSION_COOKIE)
+    delete_session(token)
+    response = RedirectResponse("/", status_code=303)
+    response.delete_cookie(SESSION_COOKIE)
+    return response
 
 @router.get("/", response_class=HTMLResponse)
 def items_list_page(
@@ -96,22 +223,28 @@ def items_list_page(
             "categories": CATEGORY_VALUES,
             "message": request.query_params.get("message"),
             "message_error": request.query_params.get("error") == "1",
+            "user": current_user(request),
         },
     )
 
-
 @router.get("/report", response_class=HTMLResponse)
 def report_form(request: Request) -> HTMLResponse:
+    user = current_user(request)
+    form = {}
+    if user:
+        form["finder_contact"] = user.email
+    
     return templates.TemplateResponse(
         request,
         "report_item.html",
         {
             "categories": CATEGORY_VALUES,
             "errors": [],
-            "form": {},
+            "form": form,
             "today": date.today().isoformat(),
             "message": request.query_params.get("message"),
             "message_error": request.query_params.get("error") == "1",
+            "user": user,
         },
     )
 
@@ -166,6 +299,7 @@ def report_submit(
     return _flash_redirect("/", f"Item {item.id} reported. Thank you!")
 
 
+
 @router.get("/items/{item_id}", response_class=HTMLResponse)
 def item_detail_page(
     request: Request,
@@ -181,6 +315,10 @@ def item_detail_page(
             {"message": f"Item {item_id} not found"},
             status_code=404,
         )
+    user = current_user(request)
+    form = {}
+    if user:
+        form["claimant_contact"] = user.email
 
     return templates.TemplateResponse(
         request,
@@ -189,9 +327,10 @@ def item_detail_page(
             "item": item,
             "claim_count": claim_count,
             "errors": [],
-            "form": {},
+            "form": form,
             "message": request.query_params.get("message"),
             "message_error": request.query_params.get("error") == "1",
+            "user": user,
         },
     )
 

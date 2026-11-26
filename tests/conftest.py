@@ -7,6 +7,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 os.environ.setdefault("DB_URL", "sqlite://")
 
+from app import database as database_module
 from app.database import get_session, seed_sample_data
 from app.main import app
 
@@ -18,6 +19,9 @@ def client():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    # Point the app (and auth.current_user) at the same in-memory engine.
+    database_module.engine = engine
+
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         seed_sample_data(session)

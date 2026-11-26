@@ -16,6 +16,15 @@ class ClaimStatus(str, Enum):
     accepted = "accepted"
     rejected = "rejected"
 
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    email: str = Field(sa_column=Column(String(120), nullable=False, unique=True, index=True))
+    password_hash: str = Field(sa_column=Column(String(255), nullable=False))
+    role: str = Field(default="user", sa_column=Column(String(20), nullable=False))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
 
 class Item(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

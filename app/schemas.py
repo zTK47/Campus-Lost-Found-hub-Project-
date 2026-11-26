@@ -61,6 +61,21 @@ def _as_utc(value: datetime) -> datetime:
         return value.replace(tzinfo=UTC)
     return value.astimezone(UTC)
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def must_be_fhnw(cls, value: EmailStr) -> EmailStr:
+        return _must_be_fhnw(value)
+
+class UserPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: EmailStr
+    role: str
+    created_at: datetime
 
 class ItemPublic(BaseModel):
     model_config = ConfigDict(

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Create account · Campus Lost & Found{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← All found items</a>
+
+<form method="post" action="/register" class="form-card">
+  <h2>Create account</h2>
+  <p class="meta">Use your FHNW email address (@fhnw.ch or @students.fhnw.ch).</p>
+
+  {% if error %}
+    <p class="form-error" role="alert">{{ error }}</p>
+  {% endif %}
+
+  <div>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required
+           placeholder="name@students.fhnw.ch"
+           value="{{ form.email | default('') }}"
+           autocomplete="username">
+  </div>
+
+  <div>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required
+           minlength="6"
+           autocomplete="new-password">
+  </div>
+
+  <div>
+    <label for="password_confirm">Confirm password</label>
+    <input id="password_confirm" name="password_confirm" type="password" required
+           minlength="6"
+           autocomplete="new-password">
+  </div>
+
+  <div class="actions">
+    <a class="button" href="/login">Already have an account?</a>
+    <button type="submit" class="primary">Create account</button>
+  </div>
+</form>
+{% endblock %}

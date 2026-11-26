@@ -1,3 +1,14 @@
+CREATE TABLE user (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    email VARCHAR(120) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_user_email (email),
+    INDEX ix_user_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE item (
     id INTEGER NOT NULL AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,

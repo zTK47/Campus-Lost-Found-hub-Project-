@@ -11,21 +11,34 @@
         <div class="wrap header-bar">
             <a href="/" class="brand">
                 <img src="/static/fhnw-logo.png" alt="FHNW" class="logo">
-            <div>
-                <h1>Campus Lost &amp; Found</h1>
-                <p>Lost something? Search what people have handed in.</p>
+                <div>
+                    <h1>Campus Lost &amp; Found</h1>
+                    <p>Lost something? Search what people have handed in.</p>
+                </div>
+            </a>
+
+            <div class="header-actions">
+                {% if user %}
+                    <span class="user-email">{{ user.email }}</span>
+                    <form method="post" action="/logout" style="display:inline">
+                        <button type="submit" class="button">Sign out</button>
+                    </form>
+                {% else %}
+                    <a class="button" href="/login">Sign in</a>
+                    <a class="button" href="/register">Register</a>
+                {% endif %}
+                <a class="button primary" href="/report">Report a found item</a>
             </div>
-            <a class="button primary" href="/report">Report a found item</a>
         </div>
     </header>
-    
+
     <main class="wrap">
-    {% if message %}
-        <p class="toast {% if message_error %}error{% endif %}" role="status">
-            {{ message }}
-        </p>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </main>
+        {% if message %}
+            <p class="toast {% if message_error %}error{% endif %}" role="status">
+                {{ message }}
+            </p>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
 </body>
 </html>
